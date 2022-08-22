@@ -14,15 +14,11 @@ public class Context
 
 
 
-    public void EnterScope()
-    {
-        memory.Push(new Dictionary<string, object>());
-    }
+    public void EnterScope() => memory.Push(new Dictionary<string, object>());
+    
 
-    public void ExitScope()
-    {
-        memory.Pop();
-    }
+    public void ExitScope() => memory.Pop();
+
 
     public Object Load(string identifier)
     {
@@ -41,7 +37,6 @@ public class Context
 
     public void Store(string identifier, Object value)
     {
-
         foreach (var dict in memory.Reverse())
         {
             if (dict.ContainsKey(identifier))
@@ -50,8 +45,6 @@ public class Context
                 return;
             }
         }
-
-
         memory.Last().Add(identifier, value);
     }
 

@@ -140,32 +140,16 @@ public class Literal : IExpression
 {
     Object payload;
 
-    public Literal(Object payload)
-    {
-        this.payload = payload;
-    }
-
-    public object Evaluate(Context context)
-    {
-        return payload;
-    }
-
+    public Literal(Object payload) => this.payload = payload;
+    public object Evaluate(Context context) => payload;
 }
 
 
 public class Load : IExpression
 {
     string identifier;
-
-    public Load(string identifier)
-    {
-        this.identifier = identifier;
-    }
-
-    public object Evaluate(Context context)
-    {
-        return context.Load(identifier);
-    }
+    public Load(string identifier) => this.identifier = identifier;
+    public object Evaluate(Context context) => context.Load(identifier);
 }
 
 
@@ -182,10 +166,7 @@ public class AssignmentStatement : IStatement
         this.expression = expression;
     }
 
-    public void Execute(Context context)
-    {
-        context.Store(identifier, expression.Evaluate(context));
-    }
+    public void Execute(Context context) => context.Store(identifier, expression.Evaluate(context));
 }
 
 
@@ -193,16 +174,8 @@ public class AssignmentStatement : IStatement
 public class ExpressionStatement : IStatement
 {
     IExpression expression;
-
-    public ExpressionStatement(IExpression expression)
-    {
-        this.expression = expression;
-    }
-
-    public void Execute(Context context)
-    {
-        expression.Evaluate(context);
-    }
+    public ExpressionStatement(IExpression expression) => this.expression = expression;
+    public void Execute(Context context) => expression.Evaluate(context);
 }
 
 
@@ -220,11 +193,28 @@ public class IfStatement : IStatement
         this.elseStatement = elseStatement;
     }
 
+
     public void Execute(Context context)
     {
+        if (condition.Evaluate(context).LogicalEvaluation()) body.Execute(context);
 
+        else elseStatement.Execute(context);
     }
 }
 
 
 
+
+public class BlockStatement : IStatement
+{
+    List<IStatement> statements;
+
+    public BlockStatement(List<IStatement> statements) => this.statements = statements;
+    public void Execute(Context context)
+    {
+        foreach (var statement in statements)
+        {
+            statement.Execute(context);
+        }
+    }
+}

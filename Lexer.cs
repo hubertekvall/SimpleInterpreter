@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections;
 
 namespace SimpleInterpreter
 {
@@ -247,11 +242,66 @@ namespace SimpleInterpreter
             return new Token(TokenType.EndOfText);
         }
 
+    }
 
 
+
+
+
+
+    public struct Tokenizer : IEnumerable<Token>
+    {
+        LexemeReader reader;
+
+        public IEnumerator<Token> GetEnumerator()
+        {
+            return reader;
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
 
 
     }
 
+
+
+    public struct LexemeReader : IEnumerator<Token>
+    {
+        string text;
+
+        int startPointer = 0;
+        int offset = 0;
+
+        (int offsetCache, int startPointerCache) cachedPointers;
+
+
+        public LexemeReader(string text)
+        {
+            this.text = text;
+            this.cachedPointers = (0, 0);
+        }
+
+        public Token Current => throw new NotImplementedException();
+
+        object IEnumerator.Current => throw new NotImplementedException();
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool MoveNext()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Reset()
+        {
+            throw new NotImplementedException();
+        }
+    }
 }
 

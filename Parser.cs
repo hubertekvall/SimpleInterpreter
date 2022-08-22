@@ -21,27 +21,13 @@ namespace SimpleInterpreter
         {
             previousToken = currentToken;
             currentToken = lexer.GetNextToken();
-
             return previousToken;
         }
 
-        Token RetrieveToken()
-        {
-            return previousToken;
-        }
+        Token RetrieveToken() => previousToken;
+        Token Peek() => currentToken;
+        bool CheckToken(TokenType type) => Peek().type == type;
 
-
-        Token Peek()
-        {
-
-            return currentToken;
-        }
-
-
-        bool CheckToken(TokenType type)
-        {
-            return Peek().type == type;
-        }
 
 
 
@@ -99,12 +85,8 @@ namespace SimpleInterpreter
         public static List<IStatement> ParseCode(string text)
         {
             var parser = new Parser(text);
-
             return parser.Program();
         }
-
-
-
 
 
 
@@ -114,7 +96,7 @@ namespace SimpleInterpreter
         }
 
 
-        List<IStatement> StatementList()
+        List<IStatement> BlockStatement()
         {
             List<IStatement> statements = new();
 
@@ -130,16 +112,16 @@ namespace SimpleInterpreter
         {
             if (Match(TokenType.If))
             {
-                // return ConditionalStatement();
+                
             }
+
+            
 
             return ExpStatement();
         }
 
 
-
-    
-
+ 
 
 
         IStatement ExpStatement()
@@ -222,17 +204,15 @@ namespace SimpleInterpreter
         }
 
 
-        IExpression Primary()
+        IExpression Primary() => Advance().type switch
         {
-            return Advance().type switch
-            {
-                TokenType.Number => new Literal(double.Parse(RetrieveToken().content)),
-                TokenType.StringLiteral => new Literal(RetrieveToken().content),
-                TokenType.Identifier => new Load(RetrieveToken().content),
-                TokenType.Lparen => Parenthesis(),
-                _ => throw new Exception("Expected an expression")
-            };
-        }
+            TokenType.Number => new Literal(double.Parse(RetrieveToken().content)),
+            TokenType.StringLiteral => new Literal(RetrieveToken().content),
+            TokenType.Identifier => new Load(RetrieveToken().content),
+            TokenType.Lparen => Parenthesis(),
+            _ => throw new Exception("Expected an expression")
+        };
+
 
 
 
