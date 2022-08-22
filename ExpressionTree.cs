@@ -7,81 +7,51 @@ namespace SimpleInterpreter;
 
 
 
-
-
-
-
-
-
-public abstract class TreeNode
+public interface IExpression
 {
-    protected TreeNode left;
-    protected TreeNode right;
-
-
-    public TreeNode()
-    {
-        this.left = new Empty();
-        this.right = new Empty();
-    }
-
-    public TreeNode(TreeNode left)
-    {
-        this.left = left;
-        this.right = new Empty();
-    }
-
-    public TreeNode(TreeNode left, TreeNode right)
-    {
-        this.left = left;
-        this.right = right;
-    }
-
-    public abstract Object Execute(Context context);
-  
+    public Object Evaluate(Context context);
 }
 
-
-public class Empty : TreeNode
+public interface IStatement
 {
-    public override Object Execute(Context context)
-    {
-        return "N/A";
-    }
+    public void Execute(Context context);
 }
 
 
 
-public class BinaryOperator : TreeNode
+
+
+public class BinaryOperator : IExpression
 {
 
-    Func<Object, Object, Object> operatorFunction;
+    IExpression leftExpression;
+    IExpression rightExpression;
+    Token op;
 
-    public override Object Execute(Context context)
+    public Object Evaluate(Context context)
     {
-        var opA = left.Execute(context);
-        var opB = right.Execute(context);
-        var result = operatorFunction(opA, opB);
-
+        var opA = leftExpression.Evaluate(context);
+        var opB = rightExpression.Evaluate(context);
+        var result = op.type switch
+        {
+            TokenType.Add => Add(opA, opB),
+            TokenType.Subtract => Subtract(opA, opB),
+            TokenType.Multiply => Multiply(opA, opB),
+            TokenType.Divide => Divide(opA, opB),
+            _ => throw new NotSupportedException("Invalid token or operator")
+        };
         return result;
     }
 
-    public BinaryOperator(Token token, TreeNode left, TreeNode right) : base(left, right)
+    public BinaryOperator(Token token, IExpression left, IExpression right)
     {
-
-        this.operatorFunction = token.type switch
-        {
-            TokenType.Add => Add,
-            TokenType.Subtract => Subtract,
-            TokenType.Multiply => Multiply,
-            TokenType.Divide => Divide,
-            _ => throw new NotSupportedException("Invalid operator")
-        };
-
+        this.leftExpression = left;
+        this.rightExpression = right;
+        this.op = token;
     }
 
 
-    public static Object Add(Object v1, Object v2)
+    public Object Add(Object v1, Object v2)
     {
         return (v1, v2) switch
         {
@@ -92,7 +62,7 @@ public class BinaryOperator : TreeNode
         };
     }
 
-    public static Object Subtract(Object v1, Object v2)
+    public Object Subtract(Object v1, Object v2)
     {
         return (v1, v2) switch
         {
@@ -101,7 +71,7 @@ public class BinaryOperator : TreeNode
         };
     }
 
-    public static Object Multiply(Object v1, Object v2)
+    public Object Multiply(Object v1, Object v2)
     {
         return (v1, v2) switch
         {
@@ -110,7 +80,7 @@ public class BinaryOperator : TreeNode
         };
     }
 
-    public static Object Divide(Object v1, Object v2)
+    public Object Divide(Object v1, Object v2)
     {
         return (v1, v2) switch
         {
@@ -123,27 +93,26 @@ public class BinaryOperator : TreeNode
 
 
 
-public class UnaryOperator : TreeNode
+public class UnaryOperator : IExpression
 {
-    Func<Object, Object> operatorFunction;
+    IExpression expression;
+    Token op;
 
-
-    public UnaryOperator(Token token, TreeNode left) : base(left)
+    public UnaryOperator(Token token, IExpression expression)
     {
-        this.operatorFunction = token.type switch
-        {
-            TokenType.Not => Not,
-            TokenType.Subtract => Negate,
-            _ => throw new NotSupportedException("Invalid operator")
-        };
-
+        this.op = token;
+        this.expression = expression;
     }
 
-    public override Object Execute(Context context)
+    public Object Evaluate(Context context)
     {
-        var operandA = left.Execute(context);
-
-        return operatorFunction(operandA);
+        var operandA = expression.Evaluate(context);
+        return op.type switch
+        {
+            TokenType.Not => Not(operandA),
+            TokenType.Subtract => Negate(operandA),
+            _ => throw new NotSupportedException("Invalid operator")
+        };
     }
 
     public static Object Not(Object v1)
@@ -167,9 +136,8 @@ public class UnaryOperator : TreeNode
 
 
 
-public class Literal : TreeNode
+public class Literal : IExpression
 {
-
     Object payload;
 
     public Literal(Object payload)
@@ -177,7 +145,7 @@ public class Literal : TreeNode
         this.payload = payload;
     }
 
-    public override object Execute(Context context)
+    public object Evaluate(Context context)
     {
         return payload;
     }
@@ -185,17 +153,16 @@ public class Literal : TreeNode
 }
 
 
-public class LoadVariable : TreeNode
+public class Load : IExpression
 {
-
     string identifier;
 
-    public LoadVariable(string identifier)
+    public Load(string identifier)
     {
         this.identifier = identifier;
     }
 
-    public override object Execute(Context context)
+    public object Evaluate(Context context)
     {
         return context.Load(identifier);
     }
@@ -204,27 +171,60 @@ public class LoadVariable : TreeNode
 
 
 
-public class AssignmentStatement : TreeNode
+public class AssignmentStatement : IStatement
 {
+    string identifier;
+    IExpression expression;
 
-    public AssignmentStatement(TreeNode identifier, TreeNode expression)
+    public AssignmentStatement(string identifier, IExpression expression)
     {
-        this.left = identifier;
-        this.right = expression;
+        this.identifier = identifier;
+        this.expression = expression;
     }
 
-    public override object Execute(Context context)
+    public void Execute(Context context)
     {
-        var identifier = left.Execute(context) as string;
-        var expression = right.Execute(context);
-        context.Store(identifier, expression);
-
-
-        return expression;
+        context.Store(identifier, expression.Evaluate(context));
     }
 }
 
 
+
+public class ExpressionStatement : IStatement
+{
+    IExpression expression;
+
+    public ExpressionStatement(IExpression expression)
+    {
+        this.expression = expression;
+    }
+
+    public void Execute(Context context)
+    {
+        expression.Evaluate(context);
+    }
+}
+
+
+public class IfStatement : IStatement
+{
+    IExpression condition;
+    IStatement body;
+    IStatement elseStatement;
+
+
+    public IfStatement(IExpression condition, IStatement body, IStatement elseStatement)
+    {
+        this.condition = condition;
+        this.body = body;
+        this.elseStatement = elseStatement;
+    }
+
+    public void Execute(Context context)
+    {
+
+    }
+}
 
 
 

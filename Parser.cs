@@ -96,7 +96,7 @@ namespace SimpleInterpreter
 
 
 
-        public static TreeNode ParseCode(string text)
+        public static List<IStatement> ParseCode(string text)
         {
             var parser = new Parser(text);
 
@@ -108,15 +108,15 @@ namespace SimpleInterpreter
 
 
 
-        List<TreeNode> Program()
+        List<IStatement> Program()
         {
             return StatementList();
         }
 
 
-        List<TreeNode> StatementList()
+        List<IStatement> StatementList()
         {
-            List<TreeNode> statements = new();
+            List<IStatement> statements = new();
 
             while (Peek().type != TokenType.EndOfText)
             {
@@ -126,49 +126,49 @@ namespace SimpleInterpreter
             return statements;
         }
 
-        TreeNode Statement()
+        IStatement Statement()
         {
-
             if (Match(TokenType.If))
             {
-                return ConditionalStatement();
+                // return ConditionalStatement();
             }
 
-            else return Expression();
+            return ExpStatement();
         }
 
 
 
-        TreeNode ConditionalStatement()
+    
+
+
+
+        IStatement ExpStatement()
         {
-            return new Empty();
+            return new ExpressionStatement(Expression());
         }
 
 
 
-
-
-
-        TreeNode Expression()
+        IExpression Expression()
         {
             return Equality();
         }
 
 
-        TreeNode Equality()
+        IExpression Equality()
         {
-            TreeNode rootNode = Relational();
+            IExpression rootNode = Relational();
 
             while (Match(TokenType.NotEquals, TokenType.Equals))
             {
                 Token operand = RetrieveToken();
-                TreeNode rightNode = Relational();
+                IExpression rightNode = Relational();
                 return new BinaryOperator(operand, rootNode, rightNode);
             }
             return rootNode;
         }
 
-        TreeNode Relational()
+        IExpression Relational()
         {
             var rootNode = Term();
 
@@ -182,7 +182,7 @@ namespace SimpleInterpreter
             return rootNode;
         }
 
-        TreeNode Term()
+        IExpression Term()
         {
             var rootNode = Factor();
 
@@ -196,7 +196,7 @@ namespace SimpleInterpreter
             return rootNode;
         }
 
-        TreeNode Factor()
+        IExpression Factor()
         {
             var root = Unary();
 
@@ -210,7 +210,7 @@ namespace SimpleInterpreter
             return root;
         }
 
-        TreeNode Unary()
+        IExpression Unary()
         {
             if (Match(TokenType.Subtract, TokenType.Not))
             {
@@ -222,13 +222,13 @@ namespace SimpleInterpreter
         }
 
 
-        TreeNode Primary()
+        IExpression Primary()
         {
             return Advance().type switch
             {
-                TokenType.Number => Literal.Number(RetrieveToken()),
-                TokenType.StringLiteral => Literal.String(RetrieveToken()),
-                TokenType.Identifier => new LoadVariable(RetrieveToken().content),
+                TokenType.Number => new Literal(double.Parse(RetrieveToken().content)),
+                TokenType.StringLiteral => new Literal(RetrieveToken().content),
+                TokenType.Identifier => new Load(RetrieveToken().content),
                 TokenType.Lparen => Parenthesis(),
                 _ => throw new Exception("Expected an expression")
             };
@@ -236,7 +236,7 @@ namespace SimpleInterpreter
 
 
 
-        TreeNode Parenthesis()
+        IExpression Parenthesis()
         {
             var expression = Expression();
             if (!Match(TokenType.Rparen)) throw new Exception("Unclosed parenthesis");

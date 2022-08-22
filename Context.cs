@@ -6,19 +6,6 @@ namespace SimpleInterpreter;
 
 
 
-// public struct MemoryHandle
-// {
-//     public Object value;
-//     public int scopeLevel;
-
-//     public MemoryHandle(int scopeLevel, Object value)
-//     {
-//         this.value = value;
-//         this.scopeLevel = scopeLevel;
-//     }
-// }
-
-
 
 public class Context
 {
@@ -41,7 +28,7 @@ public class Context
     {
         Object value;
 
-        foreach (var dict in memory)
+        foreach (var dict in memory.Reverse())
         {
             if (dict.TryGetValue(identifier, out value))
             {
@@ -54,7 +41,8 @@ public class Context
 
     public void Store(string identifier, Object value)
     {
-        foreach (var dict in memory)
+
+        foreach (var dict in memory.Reverse())
         {
             if (dict.ContainsKey(identifier))
             {
@@ -64,7 +52,7 @@ public class Context
         }
 
 
-        else memory.Last().Add(identifier, value);
+        memory.Last().Add(identifier, value);
     }
 
 
