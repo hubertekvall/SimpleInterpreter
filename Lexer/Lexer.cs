@@ -28,8 +28,8 @@ namespace SimpleInterpreter
         If,
         ElseIf,
         Else,
-        EndIf,
         End,
+        Then,
         NewLine
     }
 
@@ -41,17 +41,17 @@ namespace SimpleInterpreter
             {"IF", TokenType.If },
             {"ELSEIF", TokenType.ElseIf},
             {"ELSE", TokenType.Else },
-            {"ENDIF", TokenType.EndIf},
             {"VAR", TokenType.VariableDeclaration},
+            {"THEN", TokenType.Then},
             {"END", TokenType.End }
         };
 
 
         public static TokenType GetTokenType(string content)
         {
-            TokenType identifiedType;
+          
 
-            return names.TryGetValue(content, out identifiedType) ? identifiedType : TokenType.Identifier;
+            return names.TryGetValue(content, out TokenType identifiedType) ? identifiedType : TokenType.Identifier;
         }
     }
 
@@ -192,6 +192,12 @@ namespace SimpleInterpreter
 
 
 
+
+
+        
+
+
+
         public Token GetNextToken(bool skipNewline = true)
         {
 
@@ -202,7 +208,7 @@ namespace SimpleInterpreter
 
                 var ch = Advance();
 
-                var token = ch switch
+                Token token = ch switch
                 {
                     // WHITESPACE
 
@@ -239,9 +245,9 @@ namespace SimpleInterpreter
                 return token;
             }
 
+
             return new Token(TokenType.EndOfText);
         }
-
     }
 
 

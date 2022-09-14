@@ -22,11 +22,11 @@ public class Context
 
     public Object Load(string identifier)
     {
-        Object value;
+  
 
         foreach (var dict in memory.Reverse())
         {
-            if (dict.TryGetValue(identifier, out value))
+            if (dict.TryGetValue(identifier, out Object value))
             {
                 return value;
             }

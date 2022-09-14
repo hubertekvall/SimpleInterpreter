@@ -198,7 +198,7 @@ public class IfStatement : IStatement
     {
         if (condition.Evaluate(context).LogicalEvaluation()) body.Execute(context);
 
-        else elseStatement.Execute(context);
+        else if (elseStatement is not null) elseStatement.Execute(context);
     }
 }
 

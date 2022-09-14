@@ -4,12 +4,19 @@ using SimpleInterpreter;
 
 
 
-var tree = Parser.ParseCode(File.ReadAllText("sample.txt"));
 var context = new Context();
 context.EnterScope();
 
+try
+{
 
-Console.WriteLine(tree.Execute(context));
+    var tree = Parser.ParseCode(File.ReadAllText("sample.txt"));
+}
+catch (System.Exception e)
+{
+
+    Console.WriteLine(e.Message);
+}
 
 
 
