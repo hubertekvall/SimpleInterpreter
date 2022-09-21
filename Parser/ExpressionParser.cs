@@ -1,14 +1,21 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 namespace SimpleInterpreter;
+
+
+
+
+
+
+
+
+
+
 
 
 
 public class ExpressionParser : Parser
 {
+    public ExpressionParser(string text) : base(text) { }
+
     public IExpression Expression()
     {
         return Equality();
@@ -19,9 +26,9 @@ public class ExpressionParser : Parser
     {
         IExpression rootNode = Relational();
 
-        while (Match(TokenType.NotEquals, TokenType.Equals))
+        while (Match(out Token matchedOperand, TokenType.NotEquals, TokenType.Equals))
         {
-            Token operand = RetrieveToken();
+            Token operand = matchedOperand;
             IExpression rightNode = Relational();
             return new BinaryOperator(operand, rootNode, rightNode);
         }
@@ -32,9 +39,9 @@ public class ExpressionParser : Parser
     {
         var rootNode = Term();
 
-        while (Match(TokenType.GreaterOrEquals, TokenType.LesserOrEquals, TokenType.GreaterThan, TokenType.LesserThan))
+        while (Match(out Token matchedOperand, TokenType.GreaterOrEquals, TokenType.LesserOrEquals, TokenType.GreaterThan, TokenType.LesserThan))
         {
-            var operand = RetrieveToken();
+            var operand = matchedOperand;
             var rightNode = Term();
             return new BinaryOperator(operand, rootNode, rightNode);
         }
@@ -46,9 +53,9 @@ public class ExpressionParser : Parser
     {
         var rootNode = Factor();
 
-        while (Match(TokenType.Add, TokenType.Subtract))
+        while (Match(out Token matchedOperand, TokenType.Add, TokenType.Subtract))
         {
-            var operand = RetrieveToken();
+            var operand = matchedOperand;
             var rightNode = Factor();
             return new BinaryOperator(operand, rootNode, rightNode);
         }
@@ -60,9 +67,9 @@ public class ExpressionParser : Parser
     {
         var root = Unary();
 
-        while (Match(TokenType.Divide, TokenType.Multiply))
+        while (Match(out Token matchedOperand, TokenType.Divide, TokenType.Multiply))
         {
-            var op = RetrieveToken();
+            var op = matchedOperand;
             var right = Unary();
             root = new BinaryOperator(op, root, right);
         }
@@ -72,9 +79,9 @@ public class ExpressionParser : Parser
 
     IExpression Unary()
     {
-        if (Match(TokenType.Subtract, TokenType.Not))
+        if (Match(out Token matchedOperand, TokenType.Subtract, TokenType.Not))
         {
-            var operand = RetrieveToken();
+            var operand = matchedOperand;
             return new UnaryOperator(operand, Primary());
         }
 
@@ -82,16 +89,14 @@ public class ExpressionParser : Parser
     }
 
 
-    IExpression Primary() => Advance().type switch
+    IExpression Primary()
     {
-        TokenType.Number => new Literal(double.Parse(RetrieveToken().content)),
-        TokenType.StringLiteral => new Literal(RetrieveToken().content),
-        TokenType.Identifier => new Load(RetrieveToken().content),
-        TokenType.Lparen => Parenthesis(),
-        _ => throw new Exception($"Expected an expression but got: {RetrieveToken().type.ToString()}")
-    };
-
-
+        if (Match(out Token matchedNumber, TokenType.Number)) return new Literal(double.Parse(matchedNumber.content));
+        else if (Match(out Token matchedString, TokenType.StringLiteral)) return new Literal(matchedString.content);
+        else if (Match(out Token identifierMatch, TokenType.Identifier)) return new Load(identifierMatch.content);
+        else if (Match(TokenType.Lparen)) return Parenthesis();
+        else throw new Exception($"Expected an expression but got: {Advance().type.ToString()}");
+    }
 
 
     IExpression Parenthesis()

@@ -30,7 +30,8 @@ namespace SimpleInterpreter
         Else,
         End,
         Then,
-        NewLine
+        NewLine,
+        WhiteSpace
     }
 
 
@@ -49,7 +50,7 @@ namespace SimpleInterpreter
 
         public static TokenType GetTokenType(string content)
         {
-          
+
 
             return names.TryGetValue(content, out TokenType identifiedType) ? identifiedType : TokenType.Identifier;
         }
@@ -76,11 +77,7 @@ namespace SimpleInterpreter
 
 
 
-        public Lexer(string text)
-        {
-            this.text = text;
-        }
-
+        public Lexer(string text) => this.text = text;
         bool Empty() => offset >= text.Length;
 
 
@@ -97,16 +94,13 @@ namespace SimpleInterpreter
         }
 
 
-        void BeginNewToken()
+        void StartNewToken()
         {
             startPointer = offset;
         }
         string Finalize()
         {
-
             var content = text.Substring(startPointer, offset - startPointer);
-
-
             return content;
         }
 
@@ -141,7 +135,6 @@ namespace SimpleInterpreter
         public Token Identifier()
         {
             ChompWhile(Char.IsLetterOrDigit);
-
             return new Token(TokenType.Identifier, Finalize());
         }
 
@@ -194,25 +187,21 @@ namespace SimpleInterpreter
 
 
 
-        
 
-
-
-        public Token GetNextToken(bool skipNewline = true)
+        public IEnumerable<Token> Tokenize()
         {
 
             if (!Empty())
             {
 
-                BeginNewToken();
-
+                StartNewToken();
                 var ch = Advance();
 
-                Token token = ch switch
+                var foundToken = ch switch
                 {
                     // WHITESPACE
 
-                    char wsChar when (skipNewline && wsChar == '\n' || wsChar == '\r') => GetNextToken(skipNewline),
+                    // char wsChar when (skipNewline && wsChar == '\n' || wsChar == '\r') => GetNextToken(skipNewline),
                     char wsChar when (wsChar == '\n' || wsChar == '\r') => new Token(TokenType.NewLine),
 
                     // Arithmetic operators
@@ -223,7 +212,8 @@ namespace SimpleInterpreter
                     '%' => new Token(TokenType.Mod),
 
                     // If blank a space is encountered just recursively find the next token
-                    ' ' => GetNextToken(skipNewline),
+                    ' ' => new Token(TokenType.WhiteSpace),
+
                     '=' => new Token(TokenType.Assignment),
 
                     // IDENTIFIERS AND KEYWORDS
@@ -242,11 +232,8 @@ namespace SimpleInterpreter
                 };
 
 
-                return token;
+                yield return foundToken;
             }
-
-
-            return new Token(TokenType.EndOfText);
         }
     }
 
@@ -255,59 +242,6 @@ namespace SimpleInterpreter
 
 
 
-    public struct Tokenizer : IEnumerable<Token>
-    {
-        LexemeReader reader;
 
-        public IEnumerator<Token> GetEnumerator()
-        {
-            return reader;
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
-
-
-    }
-
-
-
-    public struct LexemeReader : IEnumerator<Token>
-    {
-        string text;
-
-        int startPointer = 0;
-        int offset = 0;
-
-        (int offsetCache, int startPointerCache) cachedPointers;
-
-
-        public LexemeReader(string text)
-        {
-            this.text = text;
-            this.cachedPointers = (0, 0);
-        }
-
-        public Token Current => throw new NotImplementedException();
-
-        object IEnumerator.Current => throw new NotImplementedException();
-
-        public void Dispose()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool MoveNext()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Reset()
-        {
-            throw new NotImplementedException();
-        }
-    }
 }
 
