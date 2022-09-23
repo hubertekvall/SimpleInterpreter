@@ -2,10 +2,10 @@ using System;
 namespace SimpleInterpreter;
 
 
-public class StatementParser : ExpressionParser
+public class ProgramParser : ExpressionParser
 {
 
-    public StatementParser(string text) : base(text){}
+    public ProgramParser(string text) : base(text) { }
 
 
 
@@ -30,27 +30,23 @@ public class StatementParser : ExpressionParser
 
     IStatement Statement()
     {
-        if (Match(TokenType.If))
-        {
-            return ConditionalStatement();
-        }
+        if (Match(TokenType.If)) return IfElseStatement();
+        else if (Match(TokenType.While)) return WhileStatement();
+        else if (Match(TokenType.For)) return ForStatement();
 
 
         else return ExpStatement();
     }
 
 
-    IStatement ConditionalStatement()
+    IStatement IfElseStatement()
     {
-        Expect(TokenType.Lparen, "Expression must be initiated by a left-parenthesis");
-        var expression = Expression();
-        Expect(TokenType.Rparen, "Expression must be closed by a right-parenthesis");
-        Expect(TokenType.Then, "Expected 'then'");
+        var expression = ConditionalExpression();
         var body = Block();
 
         if (Match(TokenType.ElseIf))
         {
-            var elseIfStatement = ConditionalStatement();
+            var elseIfStatement = IfElseStatement();
             return new IfStatement(expression, body, elseIfStatement);
         }
 
@@ -61,10 +57,23 @@ public class StatementParser : ExpressionParser
         }
 
 
-        Expect(TokenType.End, "If statements need to be close with a 'END'");
+        Expect(TokenType.End, "If statements needs to be closed with an 'END'");
 
-        return new IfStatement(expression, body, null);
+        return new IfStatement(expression, body);
     }
+
+
+    IStatement WhileStatement()
+    {
+        var expression = ConditionalExpression();
+        
+    }
+
+    IStatement ForStatement()
+    {
+
+    }
+
 
 
     IStatement ExpStatement()

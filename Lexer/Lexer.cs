@@ -30,6 +30,8 @@ namespace SimpleInterpreter
         Else,
         End,
         Then,
+        While,
+        For,
         NewLine,
         WhiteSpace
     }
@@ -92,6 +94,7 @@ namespace SimpleInterpreter
             if (!Empty()) return text[offset];
             else return '\0';
         }
+
 
 
         void StartNewToken()

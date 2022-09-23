@@ -10,20 +10,18 @@ namespace SimpleInterpreter;
 
 
 
-public class Parser
+public class BaseParser
 {
 
     List<Token> tokenBuffer;
     int offset;
 
-    public Parser(string source) => tokenBuffer = new Lexer(source).Tokenize().ToList();
+    public BaseParser(string source) => tokenBuffer = new Lexer(source).Tokenize().ToList();
     public bool Empty() => offset <= tokenBuffer.Count;
 
     public Token Advance()
     {
         if (!Empty()) offset++;
-
-
         if (CheckToken(TokenType.WhiteSpace) || CheckToken(TokenType.NewLine)) return Advance();
         return tokenBuffer[offset - 1];
     }
@@ -35,6 +33,12 @@ public class Parser
     public bool Expect(TokenType type, out Token matchedToken, string message = "")
     {
         if (Match(out matchedToken, type)) return true;
+        throw new Exception(message);
+    }
+    
+    public bool Expect(TokenType type, string message = "")
+    {
+        if (Match(type)) return true;
         throw new Exception(message);
     }
 

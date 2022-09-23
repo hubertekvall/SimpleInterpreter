@@ -145,28 +145,35 @@ public class Literal : IExpression
 }
 
 
-public class Load : IExpression
+public class Variable : IExpression
 {
-    string identifier;
-    public Load(string identifier) => this.identifier = identifier;
-    public object Evaluate(Context context) => context.Load(identifier);
+    public string Name {get;}
+    public Variable(string identifier) => Name = identifier;
+    public object Evaluate(Context context) => context.Load(Name);
 }
 
 
 
 
-public class AssignmentStatement : IStatement
+public class AssignmentStatement : IExpression
 {
     string identifier;
-    IExpression expression;
+    IExpression assignmentExpression;
 
     public AssignmentStatement(string identifier, IExpression expression)
     {
         this.identifier = identifier;
-        this.expression = expression;
+        this.assignmentExpression = expression;
     }
 
-    public void Execute(Context context) => context.Store(identifier, expression.Evaluate(context));
+    public object Evaluate(Context context)
+    {
+        var assignmentResult = assignmentExpression.Evaluate(context);
+        context.Store(identifier, assignmentResult);
+
+        return assignmentResult;
+    }
+
 }
 
 
@@ -183,10 +190,10 @@ public class IfStatement : IStatement
 {
     IExpression condition;
     IStatement body;
-    IStatement elseStatement;
+    IStatement? elseStatement;
 
 
-    public IfStatement(IExpression condition, IStatement body, IStatement elseStatement)
+    public IfStatement(IExpression condition, IStatement body, IStatement? elseStatement = null)
     {
         this.condition = condition;
         this.body = body;

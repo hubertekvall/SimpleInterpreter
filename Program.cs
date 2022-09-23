@@ -10,7 +10,7 @@ context.EnterScope();
 try
 {
 
-    var tree = Parser.ParseCode(File.ReadAllText("sample.txt"));
+    var tree = BaseParser.ParseCode(File.ReadAllText("sample.txt"));
 }
 catch (System.Exception e)
 {
