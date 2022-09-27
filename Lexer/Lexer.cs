@@ -58,7 +58,11 @@ namespace SimpleInterpreter
         }
     }
 
-    public record struct Token(TokenType type, string content = "");
+    public record struct Token(TokenType type, string content = "")
+    {
+        public static implicit operator TokenType(Token t) => t.type;
+        public static implicit operator Token(TokenType ttype) => new Token(ttype);
+    }
 
 
 

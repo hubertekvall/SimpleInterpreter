@@ -17,36 +17,48 @@ public class ProgramParser : ExpressionParser
 
     IStatement Block()
     {
+        var list = BlockList();
+        Expect(TokenType.End);
+
+        return list;
+    }
+
+
+    IStatement BlockList()
+    {
         List<IStatement> statements = new();
 
         while (!CheckToken(TokenType.End) || !CheckToken(TokenType.EndOfText))
         {
             statements.Add(Statement());
         }
-
-
         return new BlockStatement(statements);
     }
 
+
+
     IStatement Statement()
     {
-        if (Match(TokenType.If)) return IfElseStatement();
+        if (Match(TokenType.If)) return IfBlockStatement();
         else if (Match(TokenType.While)) return WhileStatement();
-        else if (Match(TokenType.For)) return ForStatement();
-
-
+        // else if (Match(TokenType.For)) return ForStatement();
         else return ExpStatement();
     }
 
 
-    IStatement IfElseStatement()
+
+
+
+
+
+    IStatement IfBlockStatement()
     {
-        var expression = ConditionalExpression();
+        var expression = Conditional();
         var body = Block();
 
         if (Match(TokenType.ElseIf))
         {
-            var elseIfStatement = IfElseStatement();
+            var elseIfStatement = IfBlockStatement();
             return new IfStatement(expression, body, elseIfStatement);
         }
 
@@ -57,28 +69,36 @@ public class ProgramParser : ExpressionParser
         }
 
 
-        Expect(TokenType.End, "If statements needs to be closed with an 'END'");
-
         return new IfStatement(expression, body);
     }
 
 
+
     IStatement WhileStatement()
     {
-        var expression = ConditionalExpression();
-        
+        var expression = Conditional();
+        var body = Block();
+
+        return new WhileStatement(expression, body);
     }
 
-    IStatement ForStatement()
-    {
 
-    }
 
 
 
     IStatement ExpStatement()
     {
         return new ExpressionStatement(Expression());
+    }
+
+
+
+    public IExpression Conditional()
+    {
+        Expect(TokenType.Lparen, "Expected a parenthesis expression");
+        var expression = Parenthesis();
+        Expect(TokenType.Then, "Expected 'then' ");
+        return expression;
     }
 }
 

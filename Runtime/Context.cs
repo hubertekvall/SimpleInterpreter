@@ -11,19 +11,16 @@ public class Context
 {
 
     Stack<Dictionary<string, Object>> memory = new Stack<Dictionary<string, Object>>();
-
-
+    Stack<Variant> register = new Stack<Variant>();
 
     public void EnterScope() => memory.Push(new Dictionary<string, object>());
-    
-
     public void ExitScope() => memory.Pop();
+
+
 
 
     public Object Load(string identifier)
     {
-  
-
         foreach (var dict in memory.Reverse())
         {
             if (dict.TryGetValue(identifier, out Object value))

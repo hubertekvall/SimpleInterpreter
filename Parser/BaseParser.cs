@@ -35,7 +35,7 @@ public class BaseParser
         if (Match(out matchedToken, type)) return true;
         throw new Exception(message);
     }
-    
+
     public bool Expect(TokenType type, string message = "")
     {
         if (Match(type)) return true;
@@ -55,6 +55,7 @@ public class BaseParser
         }
         return false;
     }
+
 
     public bool Match(params TokenType[] types)
     {

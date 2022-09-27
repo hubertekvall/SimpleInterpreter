@@ -33,7 +33,7 @@ public class ExpressionParser : BaseParser
 
             if (rootNode is Variable assignmentVariable)
             {
-                return new AssignmentStatement(assignmentVariable.Name, assignmentValue);
+                return new Assignment(assignmentVariable.Name, assignmentValue);
             }
 
             throw new Exception("Only variables can be assigned to")
@@ -100,7 +100,6 @@ public class ExpressionParser : BaseParser
         {
             return new UnaryOperator(matchedOperand, Primary());
         }
-
         else return Primary();
     }
 
@@ -123,13 +122,5 @@ public class ExpressionParser : BaseParser
     }
 
 
-    public IExpression ConditionalExpression()
-    {
-        Expect(TokenType.Lparen, "Conditional expression  must be initiated by a left-parenthesis");
-        var expression = Parenthesis();
-        Expect(TokenType.Then, "Expected 'then' following a conditional expression ");
 
-
-        return expression;
-    }
 }
