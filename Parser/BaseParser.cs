@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-namespace SimpleInterpreter;
+﻿namespace SimpleInterpreter;
 
 
 
@@ -12,11 +7,11 @@ namespace SimpleInterpreter;
 
 public class BaseParser
 {
-
-    List<Token> tokenBuffer;
+    
+     List<Token> tokenBuffer;
     int offset;
 
-    public BaseParser(string source) => tokenBuffer = new Lexer(source).Tokenize().ToList();
+    public BaseParser(string source) => tokenBuffer = new Lexer(source).Tokenize();
     public bool Empty() => offset <= tokenBuffer.Count;
 
     public Token Advance()
@@ -27,7 +22,7 @@ public class BaseParser
     }
 
     public Token Peek() => Empty() ? tokenBuffer[offset] : tokenBuffer[offset - 1];
-    public bool CheckToken(TokenType type) => Peek().type == type;
+    public bool CheckToken(TokenType type) => Peek().Type == type;
 
 
     public bool Expect(TokenType type, out Token matchedToken, string message = "")

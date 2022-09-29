@@ -1,4 +1,3 @@
-using System;
 namespace SimpleInterpreter;
 
 
@@ -11,17 +10,10 @@ public class ProgramParser : ExpressionParser
 
     IStatement Program()
     {
-        return Block();
+        return BlockList();
     }
 
 
-    IStatement Block()
-    {
-        var list = BlockList();
-        Expect(TokenType.End);
-
-        return list;
-    }
 
 
     IStatement BlockList()
@@ -36,13 +28,19 @@ public class ProgramParser : ExpressionParser
     }
 
 
+    IStatement Block()
+    {
+        var list = BlockList();
+        Expect(TokenType.End);
+
+        return list;
+    }
 
     IStatement Statement()
     {
         if (Match(TokenType.If)) return IfBlockStatement();
         else if (Match(TokenType.While)) return WhileStatement();
-        // else if (Match(TokenType.For)) return ForStatement();
-        else return ExpStatement();
+        else return new ExpressionStatement(Expression());
     }
 
 
@@ -69,7 +67,7 @@ public class ProgramParser : ExpressionParser
         }
 
 
-        return new IfStatement(expression, body);
+        return new IfStatement(expression, body, null);
     }
 
 
@@ -86,10 +84,6 @@ public class ProgramParser : ExpressionParser
 
 
 
-    IStatement ExpStatement()
-    {
-        return new ExpressionStatement(Expression());
-    }
 
 
 

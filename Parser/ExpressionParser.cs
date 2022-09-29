@@ -36,7 +36,7 @@ public class ExpressionParser : BaseParser
                 return new Assignment(assignmentVariable.Name, assignmentValue);
             }
 
-            throw new Exception("Only variables can be assigned to")
+            throw new Exception("Only variables can be assigned to");
         }
 
         return rootNode;
@@ -106,11 +106,11 @@ public class ExpressionParser : BaseParser
 
     public IExpression Primary()
     {
-        if (Match(out Token matchedNumber, TokenType.Number)) return new Literal(double.Parse(matchedNumber.content));
-        else if (Match(out Token matchedString, TokenType.StringLiteral)) return new Literal(matchedString.content);
-        else if (Match(out Token identifierMatch, TokenType.Identifier)) return new Variable(identifierMatch.content);
+        if (Match(out Token matchedNumber, TokenType.Number)) return new Literal(double.Parse(matchedNumber.Content));
+        else if (Match(out Token matchedString, TokenType.StringLiteral)) return new Literal(matchedString.Content);
+        else if (Match(out Token identifierMatch, TokenType.Identifier)) return new Variable(identifierMatch.Content);
         else if (Match(TokenType.Lparen)) return Parenthesis();
-        else throw new Exception($"Expected an expression but got: {Advance().type.ToString()}");
+        else throw new Exception($"Expected an expression but got: {Advance().ToString()}");
     }
 
 

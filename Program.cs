@@ -1,23 +1,7 @@
-﻿using System;
-using System.IO;
-using SimpleInterpreter;
+﻿using SimpleInterpreter;
+using System.Diagnostics;
+
+using static SimpleInterpreter.TokenType;
 
 
-
-var context = new Context();
-context.EnterScope();
-
-try
-{
-
-    var tree = BaseParser.ParseCode(File.ReadAllText("sample.txt"));
-}
-catch (System.Exception e)
-{
-
-    Console.WriteLine(e.Message);
-}
-
-
-
-
+Console.WriteLine("Hello world!");

@@ -22,23 +22,16 @@ public record class IfStatement(IExpression condition, IStatement body, IStateme
 {
     public override void ExecuteScope(Context context)
     {
-        if (condition.Evaluate(context).LogicalEvaluation()) body.Execute(context);
+        if (new Variant(condition.Evaluate(context)).LogicalEval()) body.Execute(context);
         else if (elseStatement is not null) elseStatement.Execute(context);
     }
 }
-public record class IfStatement(IExpression condition, IStatement body, IStatement? elseStatement) : ScopeStatement
-{
-    public override void ExecuteScope(Context context)
-    {
-        if (condition.Evaluate(context).LogicalEvaluation()) body.Execute(context);
-        else if (elseStatement is not null) elseStatement.Execute(context);
-    }
-}
+
 
 public record class WhileStatement(IExpression condition, IStatement body) : ScopeStatement
 {
     public override void ExecuteScope(Context context)
     {
-        while (condition.Evaluate(context).LogicalEvaluation()) body.Execute(context);
+        while (new Variant(condition.Evaluate(context)).LogicalEval()) body.Execute(context);
     }
 }

@@ -1,6 +1,4 @@
-﻿using System.Collections;
-
-namespace SimpleInterpreter
+﻿namespace SimpleInterpreter
 {
     public enum TokenType
     {
@@ -37,31 +35,28 @@ namespace SimpleInterpreter
     }
 
 
-    public class ReservedKeywords
+    public class IdentifierTable
     {
         public static Dictionary<string, TokenType> names = new Dictionary<string, TokenType>
         {
             {"IF", TokenType.If },
             {"ELSEIF", TokenType.ElseIf},
             {"ELSE", TokenType.Else },
-            {"VAR", TokenType.VariableDeclaration},
+            {"WHILE", TokenType.While},
             {"THEN", TokenType.Then},
             {"END", TokenType.End }
         };
-
-
-        public static TokenType GetTokenType(string content)
-        {
-
-
-            return names.TryGetValue(content, out TokenType identifiedType) ? identifiedType : TokenType.Identifier;
-        }
+        public static Token GenerateIdentifier(string content) => names.TryGetValue(content, out TokenType identifiedType) ? new (identifiedType, content) : new(TokenType.Identifier, content);
     }
 
-    public record struct Token(TokenType type, string content = "")
+    public record struct Token(TokenType Type, string Content = "")
     {
-        public static implicit operator TokenType(Token t) => t.type;
-        public static implicit operator Token(TokenType ttype) => new Token(ttype);
+        public static implicit operator TokenType(Token token) => token.Type;
+
+        public override string ToString()
+        {
+            return Type.ToString();
+        }
     }
 
 
@@ -76,8 +71,7 @@ namespace SimpleInterpreter
 
     public struct Lexer
     {
-
-        string text;
+        readonly string text;
         int startPointer = 0;
         int offset = 0;
 
@@ -107,7 +101,7 @@ namespace SimpleInterpreter
         }
         string Finalize()
         {
-            var content = text.Substring(startPointer, offset - startPointer);
+            var content = text[startPointer..offset];
             return content;
         }
 
@@ -142,7 +136,7 @@ namespace SimpleInterpreter
         public Token Identifier()
         {
             ChompWhile(Char.IsLetterOrDigit);
-            return new Token(TokenType.Identifier, Finalize());
+            return IdentifierTable.GenerateIdentifier(Finalize());
         }
 
 
@@ -195,10 +189,13 @@ namespace SimpleInterpreter
 
 
 
-        public IEnumerable<Token> Tokenize()
+        public List<Token> Tokenize()
         {
 
-            if (!Empty())
+
+            List<Token> tokens = new List<Token>();
+
+            while (!Empty())
             {
 
                 StartNewToken();
@@ -210,6 +207,9 @@ namespace SimpleInterpreter
 
                     // char wsChar when (skipNewline && wsChar == '\n' || wsChar == '\r') => GetNextToken(skipNewline),
                     char wsChar when (wsChar == '\n' || wsChar == '\r') => new Token(TokenType.NewLine),
+                    // If blank a space is encountered just recursively find the next token
+                    ' ' => new Token(TokenType.WhiteSpace),
+
 
                     // Arithmetic operators
                     '+' => new Token(TokenType.Add),
@@ -218,8 +218,6 @@ namespace SimpleInterpreter
                     '/' => new Token(TokenType.Divide),
                     '%' => new Token(TokenType.Mod),
 
-                    // If blank a space is encountered just recursively find the next token
-                    ' ' => new Token(TokenType.WhiteSpace),
 
                     '=' => new Token(TokenType.Assignment),
 
@@ -239,8 +237,11 @@ namespace SimpleInterpreter
                 };
 
 
-                yield return foundToken;
+                tokens.Add(foundToken);
             }
+
+
+            return tokens;
         }
     }
 

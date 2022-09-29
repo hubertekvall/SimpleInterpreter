@@ -14,7 +14,7 @@ public record class BinaryOperator(Token Operator, IExpression LeftExpression, I
     {
         var operandA = LeftExpression.Evaluate(context);
         var operandB = RightExpression.Evaluate(context);
-        return Operator.type switch
+        return Operator.Type switch
         {
             TokenType.Add => Add(operandA, operandB),
             TokenType.Subtract => Subtract(operandA, operandB),
@@ -24,7 +24,7 @@ public record class BinaryOperator(Token Operator, IExpression LeftExpression, I
         };
     }
 
-    public Object Add(Object a, Object b) => (a, b) switch
+    public static Object Add(Object a, Object b) => (a, b) switch
     {
         (double d1, double d2) => d1 + d2,
         (double d1, string s2) => d1 + s2,
@@ -33,21 +33,21 @@ public record class BinaryOperator(Token Operator, IExpression LeftExpression, I
     };
 
 
-    public Object Subtract(Object a, Object b) => (a, b) switch
+    public static Object Subtract(Object a, Object b) => (a, b) switch
     {
         (double d1, double d2) => d1 - d2,
         _ => throw new NotSupportedException("Invalid operation")
     };
 
 
-    public Object Multiply(Object a, Object b) => (a, b) switch
+    public static Object Multiply(Object a, Object b) => (a, b) switch
     {
         (double d1, double d2) => d1 * d2,
         _ => throw new NotSupportedException("Invalid operation")
     };
 
 
-    public Object Divide(Object a, Object b) => (a, b) switch
+    public static Object Divide(Object a, Object b) => (a, b) switch
     {
         (double d1, double d2) => d1 / d2,
         _ => throw new NotSupportedException("Invalid operation")

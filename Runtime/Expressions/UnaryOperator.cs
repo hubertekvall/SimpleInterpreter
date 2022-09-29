@@ -8,7 +8,7 @@ public record class UnaryOperator(Token Operator, IExpression Expression) : IExp
     public Object Evaluate(Context context)
     {
         var operandA = Expression.Evaluate(context);
-        return Operator.type switch
+        return Operator.Type switch
         {
             TokenType.Not => Not(operandA),
             TokenType.Subtract => Negate(operandA),
@@ -16,7 +16,7 @@ public record class UnaryOperator(Token Operator, IExpression Expression) : IExp
         };
     }
 
-    public static Object Not(Object v1)
+    public Object Not(Object v1)
     {
         return v1 switch
         {
@@ -25,7 +25,7 @@ public record class UnaryOperator(Token Operator, IExpression Expression) : IExp
         };
     }
 
-    public static Object Negate(Object v1)
+    public Object Negate(Object v1)
     {
         return v1 switch
         {
