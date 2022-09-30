@@ -10,7 +10,11 @@ public interface IStatement
 
 public record class ExpressionStatement(IExpression Expression) : IStatement
 {
-    public void Execute(Context context) => Expression.Evaluate(context);
+    public void Execute(Context context)
+    {
+        var result = Expression.Evaluate(context);
+        Console.WriteLine(result);
+    }
 }
 
 
@@ -22,5 +26,14 @@ public record class BlockStatement(List<IStatement> Statements) : IStatement
         {
             statement.Execute(context);
         }
+    }
+}
+
+
+public class EmptyStatement : IStatement
+{
+    public void Execute(Context context)
+    {
+       
     }
 }

@@ -4,4 +4,5 @@ using System.Diagnostics;
 using static SimpleInterpreter.TokenType;
 
 
-Console.WriteLine("Hello world!");
+var program = new ProgramParser(File.ReadAllText("..\\..\\..\\sample.txt")).Program();
+program.Execute(new Context());

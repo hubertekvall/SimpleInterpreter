@@ -8,9 +8,10 @@ public class ProgramParser : ExpressionParser
 
 
 
-    IStatement Program()
+    public IStatement Program()
     {
-        return BlockList();
+       return BlockList();
+
     }
 
 
@@ -20,31 +21,39 @@ public class ProgramParser : ExpressionParser
     {
         List<IStatement> statements = new();
 
-        while (!CheckToken(TokenType.End) || !CheckToken(TokenType.EndOfText))
+        while(!CheckToken(TokenType.End) || CheckToken(TokenType.EndOfText))
         {
-            statements.Add(Statement());
+            Match(out Token matchedToken, TokenType.If, TokenType.While, TokenType.NewLine);
+            var statement = matchedToken.Type switch
+            {
+                TokenType.If => IfBlockStatement(),
+                TokenType.While => WhileStatement(),
+                TokenType.NewLine => new EmptyStatement(),
+                _ => ExpressionStatement()
+            };
+
+            statements.Add(statement);
         }
+
+        if(!Match(TokenType.End, TokenType.EndOfText))
+        {
+            throw new Exception("A block must be closed with 'END' or be placed at the end of the code");
+        }
+
         return new BlockStatement(statements);
     }
 
 
-    IStatement Block()
+
+
+
+    IStatement ExpressionStatement()
     {
-        var list = BlockList();
-        Expect(TokenType.End);
-
-        return list;
+        var exp = new ExpressionStatement(Expression());
+        Expect(TokenType.NewLine);
+        
+        return exp;
     }
-
-    IStatement Statement()
-    {
-        if (Match(TokenType.If)) return IfBlockStatement();
-        else if (Match(TokenType.While)) return WhileStatement();
-        else return new ExpressionStatement(Expression());
-    }
-
-
-
 
 
 
@@ -52,7 +61,7 @@ public class ProgramParser : ExpressionParser
     IStatement IfBlockStatement()
     {
         var expression = Conditional();
-        var body = Block();
+        var body = BlockList();
 
         if (Match(TokenType.ElseIf))
         {
@@ -62,7 +71,7 @@ public class ProgramParser : ExpressionParser
 
         else if (Match(TokenType.Else))
         {
-            var elseStatement = Statement();
+            var elseStatement = BlockList();
             return new IfStatement(expression, body, elseStatement);
         }
 
@@ -75,7 +84,7 @@ public class ProgramParser : ExpressionParser
     IStatement WhileStatement()
     {
         var expression = Conditional();
-        var body = Block();
+        var body = BlockList();
 
         return new WhileStatement(expression, body);
     }

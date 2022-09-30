@@ -18,7 +18,7 @@ public class ExpressionParser : BaseParser
 
     public IExpression Expression()
     {
-        return Equality();
+        return Assignment();
     }
 
 
@@ -110,7 +110,7 @@ public class ExpressionParser : BaseParser
         else if (Match(out Token matchedString, TokenType.StringLiteral)) return new Literal(matchedString.Content);
         else if (Match(out Token identifierMatch, TokenType.Identifier)) return new Variable(identifierMatch.Content);
         else if (Match(TokenType.Lparen)) return Parenthesis();
-        else throw new Exception($"Expected an expression but got: {Advance().ToString()}");
+        else throw new Exception($"Expected an expression but got: {GetToken()}");
     }
 
 

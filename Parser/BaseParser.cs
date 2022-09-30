@@ -7,36 +7,40 @@
 
 public class BaseParser
 {
-    
-     List<Token> tokenBuffer;
-    int offset;
 
-    public BaseParser(string source) => tokenBuffer = new Lexer(source).Tokenize();
-    public bool Empty() => offset <= tokenBuffer.Count;
+    List<Token> tokenBuffer;
+    int offset = 0;
 
-    public Token Advance()
+    public BaseParser(string source)
     {
-        if (!Empty()) offset++;
-        if (CheckToken(TokenType.WhiteSpace) || CheckToken(TokenType.NewLine)) return Advance();
-        return tokenBuffer[offset - 1];
+        tokenBuffer = new Lexer(source).GetTokens();
+        if (tokenBuffer.Count == 0) throw new Exception("Can't parse an empty token list");
     }
 
-    public Token Peek() => Empty() ? tokenBuffer[offset] : tokenBuffer[offset - 1];
+
+
+
+    public Token GetToken()
+    {
+        if (!Finished()) offset++;
+        return tokenBuffer[offset-1];
+    }
+
+
     public bool CheckToken(TokenType type) => Peek().Type == type;
 
+    public Token Peek() =>  tokenBuffer[offset];
+    public bool Finished() => offset == tokenBuffer.Count - 1;
 
+
+    public bool Expect(TokenType type, string message = "") => Expect(type, out Token matchedToken, message);
     public bool Expect(TokenType type, out Token matchedToken, string message = "")
     {
         if (Match(out matchedToken, type)) return true;
         throw new Exception(message);
     }
 
-    public bool Expect(TokenType type, string message = "")
-    {
-        if (Match(type)) return true;
-        throw new Exception(message);
-    }
-
+    public bool Match(params TokenType[] types) => Match(out Token matchedToken, types);
     public bool Match(out Token match, params TokenType[] types)
     {
         match = new Token(TokenType.EndOfText);
@@ -44,7 +48,7 @@ public class BaseParser
         {
             if (CheckToken(t))
             {
-                match = Advance();
+                match = GetToken();
                 return true;
             }
         }
@@ -52,18 +56,8 @@ public class BaseParser
     }
 
 
-    public bool Match(params TokenType[] types)
-    {
-        foreach (TokenType t in types)
-        {
-            if (CheckToken(t))
-            {
-                Advance();
-                return true;
-            }
-        }
-        return false;
-    }
+
+
 }
 
 
