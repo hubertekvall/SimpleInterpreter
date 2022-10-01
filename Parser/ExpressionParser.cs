@@ -27,7 +27,7 @@ public class ExpressionParser : BaseParser
     {
         IExpression rootNode = Equality();
 
-        if (Match(TokenType.Assignment))
+        if (Match(out _,  TokenType.Assignment))
         {
             IExpression assignmentValue = Assignment();
 
@@ -109,15 +109,15 @@ public class ExpressionParser : BaseParser
         if (Match(out Token matchedNumber, TokenType.Number)) return new Literal(double.Parse(matchedNumber.Content));
         else if (Match(out Token matchedString, TokenType.StringLiteral)) return new Literal(matchedString.Content);
         else if (Match(out Token identifierMatch, TokenType.Identifier)) return new Variable(identifierMatch.Content);
-        else if (Match(TokenType.Lparen)) return Parenthesis();
-        else throw new Exception($"Expected an expression but got: {GetToken()}");
+        else if (Match(out _ , TokenType.Lparen)) return Parenthesis();
+        else throw new Exception($"Expected an expression but got: {Advance()}");
     }
 
 
     public IExpression Parenthesis()
     {
         var expression = Expression();
-        if (!Match(TokenType.Rparen)) throw new Exception("Unclosed parenthesis");
+        if (!Match(out _, TokenType.Rparen)) throw new Exception("Unclosed parenthesis");
         return expression;
     }
 

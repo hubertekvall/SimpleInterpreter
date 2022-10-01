@@ -18,9 +18,10 @@ public record class ExpressionStatement(IExpression Expression) : IStatement
 }
 
 
-public record class BlockStatement(List<IStatement> Statements) : IStatement
+public record class BlockStatement(List<IStatement> Statements) : ScopeStatement
 {
-    public void Execute(Context context)
+
+    public override void ExecuteScope(Context context)
     {
         foreach (var statement in Statements)
         {
