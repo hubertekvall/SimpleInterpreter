@@ -18,20 +18,20 @@ public abstract record class ScopeStatement : IStatement
 
 
 
-public record class IfStatement(IExpression condition, IStatement body, IStatement? elseStatement) : ScopeStatement
+public record class IfStatement(IExpression Condition, IStatement Body, IStatement? ElseStatement) : ScopeStatement
 {
     public override void ExecuteScope(Context context)
     {
-        if (new Variant(condition.Evaluate(context)).LogicalEval()) body.Execute(context);
-        else if (elseStatement is not null) elseStatement.Execute(context);
+        if (new Variant(Condition.Evaluate(context)).LogicalEval()) Body.Execute(context);
+        else if (ElseStatement is not null) ElseStatement.Execute(context);
     }
 }
 
 
-public record class WhileStatement(IExpression condition, IStatement body) : ScopeStatement
+public record class WhileStatement(IExpression Condition, IStatement Body) : ScopeStatement
 {
     public override void ExecuteScope(Context context)
     {
-        while (new Variant(condition.Evaluate(context)).LogicalEval()) body.Execute(context);
+        while (new Variant(Condition.Evaluate(context)).LogicalEval()) Body.Execute(context);
     }
 }

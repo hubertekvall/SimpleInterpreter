@@ -4,7 +4,7 @@
 
 public enum TokenType
 {
-
+    PrintStatement,
     EndOfText,
     Identifier,
     Lparen,
@@ -46,7 +46,8 @@ public class IdentifierTable
             {"ELSE", TokenType.Else },
             {"WHILE", TokenType.While},
             {"THEN", TokenType.Then},
-            {"END", TokenType.End }
+            {"END", TokenType.End },
+            {"PRINT", TokenType.PrintStatement}
         };
     public static Token GenerateIdentifier(string content) => names.TryGetValue(content, out TokenType identifiedType) ? new(identifiedType, content) : new(TokenType.Identifier, content);
 }

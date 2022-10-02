@@ -10,7 +10,7 @@ public class ProgramParser : ExpressionParser
 
     public IStatement Program()
     {
-       return BlockList();
+        return BlockList();
 
     }
 
@@ -21,7 +21,7 @@ public class ProgramParser : ExpressionParser
     {
         List<IStatement> statements = new();
 
-        while(!CheckToken(TokenType.End))
+        while (!CheckToken(TokenType.End))
         {
 
             switch (Peek().Type)
@@ -34,6 +34,13 @@ public class ProgramParser : ExpressionParser
                     Advance();
                     statements.Add(WhileStatement());
                     break;
+                case TokenType.PrintStatement:
+                    Advance();
+                    var expression = Expression();
+                    Terminal();
+                    statements.Add(new PrintStatement(expression));
+                    break;
+
                 case TokenType.NewLine:
                     Advance();
                     break;
@@ -44,7 +51,7 @@ public class ProgramParser : ExpressionParser
             }
         }
 
-        if(!Match(out _, TokenType.End, TokenType.EndOfText))
+        if (!Match(out _, TokenType.End, TokenType.EndOfText))
         {
             throw new Exception("A block must be closed with 'END' or be placed at the end of the code");
         }
@@ -59,10 +66,15 @@ public class ProgramParser : ExpressionParser
     IStatement ExpressionStatement()
     {
         var expstmnt = new ExpressionStatement(Expression());
-        Expect(TokenType.NewLine, out _);
+        Terminal();
         return expstmnt;
     }
 
+
+    void Terminal()
+    {
+        if (!Match(out _, TokenType.NewLine, TokenType.End)) throw new Exception();
+    }
 
 
 
@@ -72,7 +84,7 @@ public class ProgramParser : ExpressionParser
         var body = BlockList();
         SkipNewlines();
 
-        if (Match(out _,TokenType.ElseIf))
+        if (Match(out _, TokenType.ElseIf))
         {
             var elseIfStatement = IfBlockStatement();
             return new IfStatement(expression, body, elseIfStatement);
@@ -109,7 +121,7 @@ public class ProgramParser : ExpressionParser
     {
         Expect(TokenType.Lparen, out _, "Expected a parenthesis expression");
         var expression = Parenthesis();
-        Expect(TokenType.Then, out _ , "Expected 'then' ");
+        Expect(TokenType.Then, out _, "Expected 'then' ");
         return expression;
     }
 }

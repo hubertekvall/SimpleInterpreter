@@ -12,8 +12,7 @@ public record class ExpressionStatement(IExpression Expression) : IStatement
 {
     public void Execute(Context context)
     {
-        var result = Expression.Evaluate(context);
-        Console.WriteLine(result);
+        Expression.Evaluate(context);
     }
 }
 
@@ -31,10 +30,13 @@ public record class BlockStatement(List<IStatement> Statements) : ScopeStatement
 }
 
 
-public class EmptyStatement : IStatement
+public record class PrintStatement(IExpression Expression) : IStatement
 {
     public void Execute(Context context)
     {
-       
+       var result = Expression.Evaluate(context);
+       Console.WriteLine(result);
     }
 }
+
+

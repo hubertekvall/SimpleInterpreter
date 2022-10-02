@@ -50,7 +50,7 @@ public class ExpressionParser : BaseParser
         {
 
             IExpression rightNode = Relational();
-            return new BinaryOperator(matchedOperand, rootNode, rightNode);
+            rootNode = new BinaryOperator(matchedOperand, rootNode, rightNode);
         }
         return rootNode;
     }
@@ -62,7 +62,7 @@ public class ExpressionParser : BaseParser
         while (Match(out Token matchedOperand, TokenType.GreaterOrEquals, TokenType.LesserOrEquals, TokenType.GreaterThan, TokenType.LesserThan))
         {
             var rightNode = Term();
-            return new BinaryOperator(matchedOperand, rootNode, rightNode);
+            rootNode = new BinaryOperator(matchedOperand, rootNode, rightNode);
         }
 
         return rootNode;
@@ -75,7 +75,7 @@ public class ExpressionParser : BaseParser
         while (Match(out Token matchedOperand, TokenType.Add, TokenType.Subtract))
         {
             var rightNode = Factor();
-            return new BinaryOperator(matchedOperand, rootNode, rightNode);
+            rootNode = new BinaryOperator(matchedOperand, rootNode, rightNode);
         }
 
         return rootNode;
