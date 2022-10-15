@@ -1,4 +1,4 @@
-namespace SimpleInterpreter;
+namespace SimpleInterpreter.Runtime;
 
 
 
@@ -18,7 +18,7 @@ public abstract record class ScopeStatement : IStatement
 
 
 
-public record class IfStatement(IExpression Condition, IStatement Body, IStatement? ElseStatement) : ScopeStatement
+public record class ConditionalStatement(IExpression Condition, IStatement Body, IStatement? ElseStatement) : ScopeStatement
 {
     public override void ExecuteScope(Context context)
     {

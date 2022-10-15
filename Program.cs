@@ -1,8 +1,10 @@
 ﻿using SimpleInterpreter;
 using System.Diagnostics;
 
-using static SimpleInterpreter.TokenType;
+using SimpleInterpreter.Lexer;
+using SimpleInterpreter.Parser;
+using SimpleInterpreter.Runtime;
 
+var program = ProgramParser.Parse("Hello");
 
-var program = new ProgramParser(File.ReadAllText("E:\\Code\\SimpleInterpreter\\sample.txt")).Program();
 program.Execute(new Context());

@@ -1,4 +1,4 @@
-namespace SimpleInterpreter;
+namespace SimpleInterpreter.Runtime;
 
 
 

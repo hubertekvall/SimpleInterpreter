@@ -1,113 +1,41 @@
-﻿namespace SimpleInterpreter;
-
-
-
-public enum TokenType
-{
-    PrintStatement,
-    EndOfText,
-    Identifier,
-    Lparen,
-    Rparen,
-    Add,
-    Subtract,
-    Multiply,
-    Divide,
-    Mod,
-    Number,
-    StringLiteral,
-    VariableDeclaration,
-    Assignment,
-    Equals,
-    NotEquals,
-    GreaterOrEquals,
-    LesserOrEquals,
-    LesserThan,
-    GreaterThan,
-    Not,
-    If,
-    ElseIf,
-    Else,
-    End,
-    Then,
-    While,
-    For,
-    NewLine,
-    WhiteSpace
-}
-
-
-public class IdentifierTable
-{
-    public static Dictionary<string, TokenType> names = new Dictionary<string, TokenType>
-        {
-            {"IF", TokenType.If },
-            {"ELSEIF", TokenType.ElseIf},
-            {"ELSE", TokenType.Else },
-            {"WHILE", TokenType.While},
-            {"THEN", TokenType.Then},
-            {"END", TokenType.End },
-            {"PRINT", TokenType.PrintStatement}
-        };
-    public static Token GenerateIdentifier(string content) => names.TryGetValue(content, out TokenType identifiedType) ? new(identifiedType, content) : new(TokenType.Identifier, content);
-}
-
-public record struct Token(TokenType Type, string Content = "")
-{
-    public static implicit operator TokenType(Token token) => token.Type;
-    public static implicit operator Token(TokenType type) => new Token(type);
-    public override string ToString()
-    {
-        return Type.ToString();
-    }
-}
-
-
-
-
-
-
-
-
-
+﻿namespace SimpleInterpreter.Lexer;
+using SimpleInterpreter.Runtime.Operators;
 
 
 public struct Lexer
 {
-    readonly string text;
-    int startPointer = 0;
-    int offset = 0;
+    readonly string _text;
+    int _startPointer = 0;
+    int _offset = 0;
 
 
-
-    public Lexer(string text) => this.text = text;
-    bool Empty() => offset >= text.Length;
+    public Lexer(string text) => this._text = text;
+    bool Empty() => _offset >= _text.Length;
 
 
     char Advance()
     {
-        if (!Empty()) offset++;
-        return text[offset - 1];
+        if (!Empty()) _offset++;
+        return _text[_offset - 1];
     }
 
     char Peek()
     {
-        if (!Empty()) return text[offset];
+        if (!Empty()) return _text[_offset];
         else return '\0';
     }
 
 
-
     void StartNewToken()
     {
-        startPointer = offset;
-    }
-    string GetContent()
-    {
-        var content = text[startPointer..offset];
-        return content;
+        _startPointer = _offset;
     }
 
+    string GetContent()
+    {
+        var content = _text[_startPointer.._offset];
+        return content;
+    }
 
 
     public bool Chomp(Func<Char, bool> matchFunction)
@@ -135,14 +63,11 @@ public struct Lexer
     }
 
 
-
     public Token Identifier()
     {
         ChompWhile(Char.IsLetterOrDigit);
         return IdentifierTable.GenerateIdentifier(GetContent());
     }
-
-
 
 
     public Token Comparison()
@@ -155,7 +80,6 @@ public struct Lexer
             _ => new Token(TokenType.Assignment)
         };
     }
-
 
 
     public Token Number()
@@ -190,84 +114,54 @@ public struct Lexer
     Token GenerateToken(TokenType type) => new Token(type, GetContent());
 
 
-    public List<Token> GetTokens()
+
+
+    Token GetNextToken()
+    {
+
+        StartNewToken();
+        var currentCharacter = Advance();
+
+        switch (currentCharacter)
+        {
+            case '\r':
+            case '\t':
+            case ' ':
+                break;
+
+            case '\n':
+                return TokenType.NewLine;
+
+            // Arithmetic operators
+            case '+': return TokenType.Add;
+            case '-': return TokenType.Subtract;
+            case '*': return TokenType.Multiply;
+            case '/': return TokenType.Divide;
+            case '%': return TokenType.Mod;
+
+            case '=': return TokenType.Assignment;
+
+            case char ident when char.IsLetter(ident): return Identifier();
+            case char number when char.IsDigit(number): return Number();
+            case char quote when (quote == '"' || quote == '\''): return StringLiteral(quote);
+
+            case '(': return TokenType.Lparen;
+            case ')': return TokenType.Rparen;
+        }
+
+        throw new Exception("Invalid character");
+    }
+
+
+    public static List<Token> Lex(string source)
     {
         List<Token> tokens = new();
+        Lexer lexer = new Lexer(source);
 
-        while (!Empty())
+        while (!lexer.Empty())
         {
-            StartNewToken();
-            var currentCharacter = Advance();
-
-
-            switch (currentCharacter)
-            {   
-                case '\r':
-                case '\t':
-                case ' ':
-                    break;
-               
-                case '\n':
-                    tokens.Add(GenerateToken(TokenType.NewLine));
-                    break;
-
-                // Arithmetic operators
-                case '+':
-                    tokens.Add(GenerateToken(TokenType.Add));
-                    break;
-                case '-':
-                    tokens.Add(GenerateToken(TokenType.Subtract));
-                    break;
-
-                case '*':
-                    tokens.Add(GenerateToken(TokenType.Multiply));
-                    break;
-
-                case '/':
-                    tokens.Add(GenerateToken(TokenType.Divide));
-                    break;
-
-                case '%':
-                    tokens.Add(GenerateToken(TokenType.Mod));
-                    break;
-
-                case '=':
-                    tokens.Add(GenerateToken(TokenType.Assignment));
-                    break;
-
-
-
-
-
-                case char ident when char.IsLetter(ident):
-                    tokens.Add(Identifier());
-                    break;
-
-                case char number when char.IsDigit(number):
-                    tokens.Add(Number());
-                    break;
-
-                case char quote when (quote == '"' || quote == '\''):
-                    tokens.Add(StringLiteral(quote));
-                    break;
-
-
-
-
-
-                case '(':
-                    tokens.Add(GenerateToken(TokenType.Lparen));
-                    break;
-
-                case ')':
-                    tokens.Add(GenerateToken(TokenType.Rparen));
-                    break;
-
-
-                default:
-                    throw new Exception("Invalid character");
-            }
-
+            var nextToken = lexer.GetNextToken();
+            tokens.Add(nextToken);
         }
 
         return tokens;
@@ -275,9 +169,9 @@ public struct Lexer
 
 
 
-
-
 }
+
+
 
 
 

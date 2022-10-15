@@ -1,20 +1,13 @@
-namespace SimpleInterpreter;
+namespace SimpleInterpreter.Parser;
+using SimpleInterpreter.Lexer;
+using SimpleInterpreter.Runtime;
+using SimpleInterpreter.Runtime.Operators;
 
 
 
 
-
-
-
-
-
-
-
-
-
-public class ExpressionParser : BaseParser
+public class ExpressionParser : Parser
 {
-    public ExpressionParser(string text) : base(text) { }
 
     public IExpression Expression()
     {
@@ -23,104 +16,62 @@ public class ExpressionParser : BaseParser
 
 
 
+
     public IExpression Assignment()
     {
-        IExpression rootNode = Equality();
+        IExpression root = Equality();
 
-        if (Match(out _,  TokenType.Assignment))
+        if (Tokens.Match(out _, TokenType.Assignment))
         {
-            IExpression assignmentValue = Assignment();
-
-            if (rootNode is Variable assignmentVariable)
-            {
-                return new Assignment(assignmentVariable.Name, assignmentValue);
-            }
-
-            throw new Exception("Only variables can be assigned to");
-        }
-
-        return rootNode;
-    }
-
-    public IExpression Equality()
-    {
-        IExpression rootNode = Relational();
-
-        while (Match(out Token matchedOperand, TokenType.NotEquals, TokenType.Equals))
-        {
-
-            IExpression rightNode = Relational();
-            rootNode = new BinaryOperator(matchedOperand, rootNode, rightNode);
-        }
-        return rootNode;
-    }
-
-    public IExpression Relational()
-    {
-        var rootNode = Term();
-
-        while (Match(out Token matchedOperand, TokenType.GreaterOrEquals, TokenType.LesserOrEquals, TokenType.GreaterThan, TokenType.LesserThan))
-        {
-            var rightNode = Term();
-            rootNode = new BinaryOperator(matchedOperand, rootNode, rightNode);
-        }
-
-        return rootNode;
-    }
-
-    public IExpression Term()
-    {
-        var rootNode = Factor();
-
-        while (Match(out Token matchedOperand, TokenType.Add, TokenType.Subtract))
-        {
-            var rightNode = Factor();
-            rootNode = new BinaryOperator(matchedOperand, rootNode, rightNode);
-        }
-
-        return rootNode;
-    }
-
-    public IExpression Factor()
-    {
-        var root = Unary();
-
-        while (Match(out Token matchedOperand, TokenType.Divide, TokenType.Multiply))
-        {
-            var right = Unary();
-            root = new BinaryOperator(matchedOperand, root, right);
+            if (root is Variable variable) return new AssignmentExpression(variable.Name, Assignment());
+            throw new Exception("Can only assign to variables");
         }
 
         return root;
     }
 
-    public IExpression Unary()
+    public IExpression Equality() => MatchBinaryOperator(Relational, TokenType.Equals, TokenType.NotEquals);
+    public IExpression Relational() => MatchBinaryOperator(Term, TokenType.GreaterOrEquals, TokenType.LesserOrEquals, TokenType.LesserThan, TokenType.GreaterThan);
+    public IExpression Term() => MatchBinaryOperator(Factor, TokenType.Add, TokenType.Subtract);
+    public IExpression Factor() => MatchBinaryOperator(Unary, TokenType.Multiply, TokenType.Divide);
+
+    public IExpression Unary() => Tokens.Peek().Type switch
     {
-        if (Match(out Token matchedOperand, TokenType.Subtract, TokenType.Not))
-        {
-            return new UnaryOperator(matchedOperand, Primary());
-        }
-        else return Primary();
-    }
+        TokenType.Add or TokenType.Subtract => new UnaryOperator(Tokens.Advance(), Primary()),
+        _ => Primary()
+    };
 
 
     public IExpression Primary()
     {
-        if (Match(out Token matchedNumber, TokenType.Number)) return new Literal(double.Parse(matchedNumber.Content));
-        else if (Match(out Token matchedString, TokenType.StringLiteral)) return new Literal(matchedString.Content);
-        else if (Match(out Token identifierMatch, TokenType.Identifier)) return new Variable(identifierMatch.Content);
-        else if (Match(out _ , TokenType.Lparen)) return Parenthesis();
-        else throw new Exception($"Expected an expression but got: {Advance()}");
+        if (Tokens.Match(out Token matchedNumber, TokenType.Number)) return new Literal(double.Parse(matchedNumber.Content));
+        else if (Tokens.Match(out Token matchedString, TokenType.StringLiteral)) return new Literal(matchedString.Content);
+        else if (Tokens.Match(out Token identifierMatch, TokenType.Identifier)) return new Variable(identifierMatch.Content);
+        else if (Tokens.Match(out _, TokenType.Lparen)) return Parenthesis();
+        else throw new Exception($"Expected an expression but got: {Tokens.Advance()}");
     }
 
 
     public IExpression Parenthesis()
     {
         var expression = Expression();
-        if (!Match(out _, TokenType.Rparen)) throw new Exception("Unclosed parenthesis");
+        if (!Tokens.Match(out _, TokenType.Rparen)) throw new Exception("Unclosed parenthesis");
         return expression;
     }
 
+
+
+    public IExpression MatchBinaryOperator(Func<IExpression> higherPrecedenceFunction, params TokenType[] types)
+    {
+        var root = higherPrecedenceFunction();
+
+        while (Tokens.Match(out Token matchedOperand, types))
+        {
+            root = BinaryOperator.MakeOperator(matchedOperand, root, higherPrecedenceFunction());
+        }
+
+        return root;
+    }
 
 
 }

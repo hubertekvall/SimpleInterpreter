@@ -1,5 +1,5 @@
-namespace SimpleInterpreter;
-
+namespace SimpleInterpreter.Runtime;
+using SimpleInterpreter.Lexer;
 
 
 public interface IExpression
@@ -23,13 +23,13 @@ public record class Variable(string Name) : IExpression
 
 
 
-public record class Assignment(string Identifier, IExpression AssignmentExpression) : IExpression
+public record class AssignmentExpression(string Identifier, IExpression Expression) : IExpression
 {
     public object Evaluate(Context context)
     {
-        var assignmentResult = AssignmentExpression.Evaluate(context);
-        context.Store(Identifier, assignmentResult);
-        return assignmentResult;
+        var result = Expression.Evaluate(context);
+        context.Store(Identifier, result);
+        return result;
     }
 }
 

@@ -1,17 +1,25 @@
-namespace SimpleInterpreter;
-
+namespace SimpleInterpreter.Parser;
+using SimpleInterpreter.Runtime;
+using SimpleInterpreter.Lexer;
+using SimpleInterpreter.Runtime.Operators;
 
 public class ProgramParser : ExpressionParser
 {
 
-    public ProgramParser(string text) : base(text) { }
+    public static IStatement Parse(string code)
+    {
+        ProgramParser parser = new ProgramParser
+        {
+            Tokens = TokenStream.CreateFrom(code)
+        };
 
+        return parser.Program();
+    }
 
 
     public IStatement Program()
     {
         return BlockList();
-
     }
 
 
@@ -21,28 +29,28 @@ public class ProgramParser : ExpressionParser
     {
         List<IStatement> statements = new();
 
-        while (!CheckToken(TokenType.End))
+        while (!Tokens.CheckToken(TokenType.End))
         {
 
-            switch (Peek().Type)
+            switch (Tokens.Peek().Type)
             {
                 case TokenType.If:
-                    Advance();
-                    statements.Add(IfBlockStatement());
+                    Tokens.Advance();
+                    statements.Add(ConditionalStatement());
                     break;
                 case TokenType.While:
-                    Advance();
+                    Tokens.Advance();
                     statements.Add(WhileStatement());
                     break;
                 case TokenType.PrintStatement:
-                    Advance();
+                    Tokens.Advance();
                     var expression = Expression();
                     Terminal();
                     statements.Add(new PrintStatement(expression));
                     break;
 
                 case TokenType.NewLine:
-                    Advance();
+                    Tokens.Advance();
                     break;
                 default:
                     statements.Add(ExpressionStatement());
@@ -51,7 +59,7 @@ public class ProgramParser : ExpressionParser
             }
         }
 
-        if (!Match(out _, TokenType.End, TokenType.EndOfText))
+        if (!Tokens.Match(out _, TokenType.End, TokenType.EndOfText))
         {
             throw new Exception("A block must be closed with 'END' or be placed at the end of the code");
         }
@@ -63,66 +71,64 @@ public class ProgramParser : ExpressionParser
 
 
 
-    IStatement ExpressionStatement()
+
+
+
+    IStatement ConditionalStatement()
     {
-        var expstmnt = new ExpressionStatement(Expression());
-        Terminal();
-        return expstmnt;
-    }
-
-
-    void Terminal()
-    {
-        if (!Match(out _, TokenType.NewLine, TokenType.End)) throw new Exception();
-    }
-
-
-
-    IStatement IfBlockStatement()
-    {
-        var expression = Conditional();
+        var expression = ConditionalExpression();
         var body = BlockList();
-        SkipNewlines();
+        Tokens.SkipNewlines();
 
-        if (Match(out _, TokenType.ElseIf))
+        if (Tokens.Match(out _, TokenType.ElseIf))
         {
-            var elseIfStatement = IfBlockStatement();
-            return new IfStatement(expression, body, elseIfStatement);
+            var elseIfStatement = ConditionalStatement();
+            return new ConditionalStatement(expression, body, elseIfStatement);
         }
 
-        else if (Match(out _, TokenType.Else))
+        else if (Tokens.Match(out _, TokenType.Else))
         {
             var elseStatement = BlockList();
-            return new IfStatement(expression, body, elseStatement);
+            return new ConditionalStatement(expression, body, elseStatement);
         }
 
 
-        return new IfStatement(expression, body, null);
+        return new ConditionalStatement(expression, body, null);
     }
 
 
 
     IStatement WhileStatement()
     {
-        var expression = Conditional();
+        var expression = ConditionalExpression();
         var body = BlockList();
 
         return new WhileStatement(expression, body);
     }
 
 
-
-
-
-
-
-
-    public IExpression Conditional()
+    public IExpression ConditionalExpression()
     {
-        Expect(TokenType.Lparen, out _, "Expected a parenthesis expression");
+        Tokens.Expect(TokenType.Lparen, out _, "Expected a parenthesis expression");
         var expression = Parenthesis();
-        Expect(TokenType.Then, out _, "Expected 'then' ");
+        Tokens.Expect(TokenType.Then, out _, "Expected 'then' ");
         return expression;
     }
+
+
+
+    IStatement ExpressionStatement()
+    {
+        var statement = new ExpressionStatement(Expression());
+        Terminal();
+        return statement;
+    }
+
+
+    void Terminal()
+    {
+        if (!Tokens.Match(out _, TokenType.NewLine, TokenType.End)) throw new Exception();
+    }
+
 }
 

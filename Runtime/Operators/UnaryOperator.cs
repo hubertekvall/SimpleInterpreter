@@ -1,4 +1,5 @@
-namespace SimpleInterpreter;
+namespace SimpleInterpreter.Runtime.Operators;
+using SimpleInterpreter.Lexer;
 
 
 

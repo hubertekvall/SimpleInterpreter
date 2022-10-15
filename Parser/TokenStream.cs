@@ -1,26 +1,35 @@
-﻿namespace SimpleInterpreter;
+﻿namespace SimpleInterpreter.Parser;
+using SimpleInterpreter.Lexer;
 
 
 
 
 
 
-public class BaseParser
+public class TokenStream
 {
-    Stack<Token> tokenBuffer;
-   
+    Stack<Token> Buffer { get; init; }
 
-    public BaseParser(string source)
+
+    public static TokenStream CreateFrom(string code)
     {
-        tokenBuffer = new Stack<Token>(new Lexer(source).GetTokens().Reverse<Token>());
-        if (tokenBuffer.Count == 0) throw new Exception("Can't parse an empty token list");
+        
+        var stack = new Stack<Token>(Lexer.Lex(code));
+        stack.Reverse();
+
+        TokenStream tStream = new TokenStream
+        {
+            Buffer = stack
+        };
+
+        return tStream;
     }
 
 
 
     public Token Advance()
     {
-        if (tokenBuffer.TryPop(out Token current))
+        if (Buffer.TryPop(out Token current))
         {
             return current;
         }
@@ -32,21 +41,21 @@ public class BaseParser
     public bool CheckToken(TokenType type) => Peek().Type == type;
     public Token Peek()
     {
-        if(tokenBuffer.TryPeek(out Token current))
+        if (Buffer.TryPeek(out Token current))
         {
             return current;
         }
-            
-                
+
+
         return TokenType.End;
     }
-    public bool Empty() => tokenBuffer.Count <= 0;
+    public bool Empty() => Buffer.Count <= 0;
 
-  
+
 
     public void SkipNewlines()
     {
-        while(Peek().Type == TokenType.NewLine) Advance();
+        while (Peek().Type == TokenType.NewLine) Advance();
     }
 
 
@@ -69,19 +78,7 @@ public class BaseParser
         }
         return false;
     }
-
-
-
-
 }
-
-
-
-
-
-
-
-
 
 
 
