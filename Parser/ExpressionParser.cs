@@ -23,7 +23,10 @@ public class ExpressionParser : Parser
 
         if (Tokens.Match(out _, TokenType.Assignment))
         {
-            if (root is Variable variable) return new AssignmentExpression(variable.Name, Assignment());
+            if (root is Variable variable)
+            {
+                return new AssignmentExpression(variable.Name, Assignment());
+            }
             throw new Exception("Can only assign to variables");
         }
 

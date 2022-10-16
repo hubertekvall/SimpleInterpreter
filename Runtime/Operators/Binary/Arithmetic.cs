@@ -27,6 +27,8 @@ public sealed class MultiplyOperator : IBinaryOperator
     public object Execute(Object a, Object b) => (a, b) switch
     {
         (double d1, double d2) => d1 * d2,
+        (double d, string s) => string.Concat(Enumerable.Repeat(s, (int)d)),
+        (string s, double d) => string.Concat(Enumerable.Repeat(s, (int)d)),
         _ => throw new NotSupportedException("Invalid operation")
     };
 }

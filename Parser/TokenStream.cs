@@ -9,61 +9,71 @@ using SimpleInterpreter.Lexer;
 public class TokenStream
 {
     Stack<Token> Buffer { get; init; }
+    bool _skipNewline = true;
 
-
-    public static TokenStream CreateFrom(string code)
+    public TokenStream(string code)
     {
-        
-        var stack = new Stack<Token>(Lexer.Lex(code));
-        stack.Reverse();
-
-        TokenStream tStream = new TokenStream
-        {
-            Buffer = stack
-        };
-
-        return tStream;
+        Buffer = Lexer.Lex(code);
     }
 
 
 
     public Token Advance()
     {
-        if (Buffer.TryPop(out Token current))
-        {
-            return current;
-        }
+        if (Buffer.TryPop(out Token current)) return current;
 
-        return TokenType.End;
+        return TokenType.EndOfText;
     }
 
 
-    public bool CheckToken(TokenType type) => Peek().Type == type;
+    public bool CheckToken(params TokenType[] types)
+    {
+        if (_skipNewline)
+        {
+            while (Peek().Type == TokenType.NewLine)
+            {
+                Advance();
+            }
+        }
+        foreach (var t in types)
+        {
+            if (Peek().Type == t) return true;
+        }
+
+        return false;
+    }
+
     public Token Peek()
     {
         if (Buffer.TryPeek(out Token current))
         {
             return current;
         }
-
-
-        return TokenType.End;
+        return TokenType.EndOfText;
     }
     public bool Empty() => Buffer.Count <= 0;
 
 
 
-    public void SkipNewlines()
-    {
-        while (Peek().Type == TokenType.NewLine) Advance();
-    }
 
 
-    public bool Expect(TokenType type, out Token matchedToken, string message = "")
+    public void Expect(out Token matchedToken, params TokenType[] types)
     {
-        if (Match(out matchedToken, type)) return true;
-        throw new Exception(message);
+        if (!Match(out matchedToken, types))
+        {
+            var tokenTypesString = string.Join(", ", types);
+            var message = $"Expected {tokenTypesString} but got {Peek().Type}";
+            throw new Exception(message);
+        }
     }
+
+    public void ExpectNoSkip(out Token matchedToken, params TokenType[] types)
+    {
+        _skipNewline = false;
+        Expect(out matchedToken, types);
+        _skipNewline = true;
+    }
+
 
     public bool Match(out Token match, params TokenType[] types)
     {

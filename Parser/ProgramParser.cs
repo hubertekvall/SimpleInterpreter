@@ -10,76 +10,69 @@ public class ProgramParser : ExpressionParser
     {
         ProgramParser parser = new ProgramParser
         {
-            Tokens = TokenStream.CreateFrom(code)
+            Tokens = new TokenStream(code)
         };
 
         return parser.Program();
     }
 
 
-    public IStatement Program()
+
+    public IStatement Program() => new BlockStatement(StatementList());
+
+
+
+
+    IStatement Block()
     {
-        return BlockList();
+        IStatement statements = new BlockStatement(StatementList());
+        Tokens.Expect(out _, TokenType.End);
+        return statements;
     }
 
 
 
 
-    IStatement BlockList()
+    List<IStatement> StatementList()
     {
-        List<IStatement> statements = new();
+        List<IStatement> stmntList = new();
 
-        while (!Tokens.CheckToken(TokenType.End))
+        while (!Tokens.CheckToken(TokenType.End, TokenType.EndOfText))
         {
-
-            switch (Tokens.Peek().Type)
-            {
-                case TokenType.If:
-                    Tokens.Advance();
-                    statements.Add(ConditionalStatement());
-                    break;
-                case TokenType.While:
-                    Tokens.Advance();
-                    statements.Add(WhileStatement());
-                    break;
-                case TokenType.PrintStatement:
-                    Tokens.Advance();
-                    var expression = Expression();
-                    Terminal();
-                    statements.Add(new PrintStatement(expression));
-                    break;
-
-                case TokenType.NewLine:
-                    Tokens.Advance();
-                    break;
-                default:
-                    statements.Add(ExpressionStatement());
-                    break;
-
-            }
+            stmntList.Add(Statement());
         }
 
-        if (!Tokens.Match(out _, TokenType.End, TokenType.EndOfText))
-        {
-            throw new Exception("A block must be closed with 'END' or be placed at the end of the code");
-        }
-
-        return new BlockStatement(statements);
+        return stmntList;
     }
 
 
+    IStatement Statement()
+    {
+
+        Tokens.Match(out Token match, TokenType.While, TokenType.If, TokenType.PrintStatement);
+        var statement = match.Type switch
+        {
+            TokenType.If => ConditionalStatement(),
+            TokenType.While => WhileStatement(),
+            _ => ExpressionStatement()
+        };
+
+        return statement;
+    }
 
 
-
-
+    IStatement ConditionalBlock()
+    {
+        Tokens.Expect(out _, TokenType.Then);
+        return Block();
+    }
 
 
     IStatement ConditionalStatement()
     {
         var expression = ConditionalExpression();
-        var body = BlockList();
-        Tokens.SkipNewlines();
-
+        var body = ConditionalBlock();
+   
         if (Tokens.Match(out _, TokenType.ElseIf))
         {
             var elseIfStatement = ConditionalStatement();
@@ -88,7 +81,7 @@ public class ProgramParser : ExpressionParser
 
         else if (Tokens.Match(out _, TokenType.Else))
         {
-            var elseStatement = BlockList();
+            var elseStatement = ConditionalBlock();
             return new ConditionalStatement(expression, body, elseStatement);
         }
 
@@ -98,21 +91,13 @@ public class ProgramParser : ExpressionParser
 
 
 
-    IStatement WhileStatement()
-    {
-        var expression = ConditionalExpression();
-        var body = BlockList();
-
-        return new WhileStatement(expression, body);
-    }
+    IStatement WhileStatement() => new WhileStatement(ConditionalExpression(), ConditionalBlock());
 
 
     public IExpression ConditionalExpression()
     {
-        Tokens.Expect(TokenType.Lparen, out _, "Expected a parenthesis expression");
-        var expression = Parenthesis();
-        Tokens.Expect(TokenType.Then, out _, "Expected 'then' ");
-        return expression;
+        Tokens.Expect(out _, TokenType.Lparen);
+        return Parenthesis();
     }
 
 
@@ -120,15 +105,13 @@ public class ProgramParser : ExpressionParser
     IStatement ExpressionStatement()
     {
         var statement = new ExpressionStatement(Expression());
-        Terminal();
+        Tokens.ExpectNoSkip(out _, TokenType.NewLine, TokenType.End);
         return statement;
     }
 
 
-    void Terminal()
-    {
-        if (!Tokens.Match(out _, TokenType.NewLine, TokenType.End)) throw new Exception();
-    }
+
+
 
 }
 

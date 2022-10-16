@@ -116,55 +116,75 @@ public struct Lexer
 
 
 
-    Token GetNextToken()
+    IEnumerable<Token> GetTokens()
     {
-
-        StartNewToken();
-        var currentCharacter = Advance();
-
-        switch (currentCharacter)
+        while (!Empty())
         {
-            case '\r':
-            case '\t':
-            case ' ':
-                break;
+            StartNewToken();
+            var currentCharacter = Advance();
 
-            case '\n':
-                return TokenType.NewLine;
+            switch (currentCharacter)
+            {
+                case '\r':
+                case '\t':
+                case ' ':
+                    break;
 
-            // Arithmetic operators
-            case '+': return TokenType.Add;
-            case '-': return TokenType.Subtract;
-            case '*': return TokenType.Multiply;
-            case '/': return TokenType.Divide;
-            case '%': return TokenType.Mod;
+                case '\n':
+                    yield return TokenType.NewLine;
+                    break;
 
-            case '=': return TokenType.Assignment;
+                // Arithmetic operators
+                case '+':
+                    yield return TokenType.Add;
+                    break;
+                case '-':
+                    yield return TokenType.Subtract;
+                    break;
+                case '*':
+                    yield return TokenType.Multiply;
+                    break;
+                case '/':
+                    yield return TokenType.Divide;
+                    break;
+                case '%':
+                    yield return TokenType.Mod;
+                    break;
 
-            case char ident when char.IsLetter(ident): return Identifier();
-            case char number when char.IsDigit(number): return Number();
-            case char quote when (quote == '"' || quote == '\''): return StringLiteral(quote);
+                case '=':
+                    yield return TokenType.Assignment;
+                    break;
 
-            case '(': return TokenType.Lparen;
-            case ')': return TokenType.Rparen;
+                case char ident when char.IsLetter(ident):
+                    yield return Identifier();
+                    break;
+                case char number when char.IsDigit(number):
+                    yield return Number();
+                    break;
+                case char quote when (quote == '"' || quote == '\''):
+                    yield return StringLiteral(quote);
+                    break;
+
+                case '(':
+                    yield return TokenType.Lparen;
+                    break;
+                case ')':
+                    yield return TokenType.Rparen;
+                    break;
+
+                default:
+                    throw new Exception($"Invalid character: '{currentCharacter}'");
+            }
         }
 
-        throw new Exception("Invalid character");
     }
 
 
-    public static List<Token> Lex(string source)
+    public static Stack<Token> Lex(string source)
     {
-        List<Token> tokens = new();
+
         Lexer lexer = new Lexer(source);
-
-        while (!lexer.Empty())
-        {
-            var nextToken = lexer.GetNextToken();
-            tokens.Add(nextToken);
-        }
-
-        return tokens;
+        return new Stack<Token>(lexer.GetTokens().Reverse());
     }
 
 

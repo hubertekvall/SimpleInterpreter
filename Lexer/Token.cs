@@ -1,7 +1,4 @@
 namespace SimpleInterpreter.Lexer;
-
-using SimpleInterpreter.Runtime.Operators;
-
 public enum TokenType
 {
     PrintStatement,
@@ -39,7 +36,7 @@ public enum TokenType
 
 public class IdentifierTable
 {
-     static readonly Dictionary<string, TokenType> Names = new Dictionary<string, TokenType>
+    static readonly Dictionary<string, TokenType> Names = new Dictionary<string, TokenType>
         {
             {"IF", TokenType.If },
             {"ELSEIF", TokenType.ElseIf},
@@ -52,7 +49,7 @@ public class IdentifierTable
     public static Token GenerateIdentifier(string content) => Names.TryGetValue(content, out TokenType identifiedType) ? new(identifiedType, content) : new(TokenType.Identifier, content);
 }
 
-public record class Token(TokenType Type, string Content = "")
+public record struct Token(TokenType Type, string Content = "")
 {
     public static implicit operator TokenType(Token token) => token.Type;
     public static implicit operator Token(TokenType type) => new Token(type);
@@ -60,7 +57,7 @@ public record class Token(TokenType Type, string Content = "")
     {
         return Type.ToString();
     }
-}
 
-public record class OperatorToken(IBinaryOperator Operator, TokenType Type, string Content = "") : Token(Type, Content);
+    public bool Equals(Token B) => this.Type == B.Type;
+}
 

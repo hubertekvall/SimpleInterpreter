@@ -5,6 +5,6 @@ using SimpleInterpreter.Lexer;
 using SimpleInterpreter.Parser;
 using SimpleInterpreter.Runtime;
 
-var program = ProgramParser.Parse("Hello");
-
+var sampleCode = File.ReadAllText("sample.txt");
+var program = ProgramParser.Parse(sampleCode);
 program.Execute(new Context());
