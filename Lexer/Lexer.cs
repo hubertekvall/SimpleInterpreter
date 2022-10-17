@@ -151,9 +151,30 @@ public struct Lexer
                     yield return TokenType.Mod;
                     break;
 
+
+
+                // Comparison
                 case '=':
-                    yield return TokenType.Assignment;
+                    if (Peek() == '=') yield return TokenType.Equals;
+                    else yield return TokenType.Assignment;
                     break;
+
+                case '!':
+                    if (Peek() == '=') yield return TokenType.NotEquals;
+                    else yield return TokenType.Not;
+                    break;
+
+                case '<':
+                    if (Peek() == '=') yield return TokenType.LesserOrEquals;
+                    else yield return TokenType.LesserThan;
+                    break;
+                case '>':
+                    if (Peek() == '=') yield return TokenType.GreaterOrEquals;
+                    else yield return TokenType.GreaterThan;
+                    break;
+
+
+
 
                 case char ident when char.IsLetter(ident):
                     yield return Identifier();

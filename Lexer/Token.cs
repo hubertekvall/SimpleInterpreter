@@ -1,4 +1,31 @@
 namespace SimpleInterpreter.Lexer;
+
+using SimpleInterpreter.Runtime.Operators;
+
+
+
+
+public struct TokenOperators
+{
+    public static readonly Dictionary<TokenType, IBinaryOperator> BinaryOperators = new()
+    {
+        {TokenType.Add, new AddOperator() },
+        {TokenType.Subtract, new SubtractOperator()},
+        {TokenType.Multiply , new MultiplyOperator()},
+        {TokenType.Divide , new DivideOperator()},
+        {TokenType.LesserThan , new LesserThanOperator()},
+        {TokenType.LesserOrEquals , new LesserOrEqualsOperator()},
+        {TokenType.GreaterThan , new GreaterThanOperator()},
+        {TokenType.GreaterOrEquals , new GreaterOrEqualsOperator()},
+        {TokenType.NotEquals , new NotEqualsOperator()},
+        {TokenType.Equals , new EqualsOperator()},
+        {TokenType.And , new AndOperator()},
+        {TokenType.Or , new OrOperator()},
+    };
+}
+
+
+
 public enum TokenType
 {
     PrintStatement,
@@ -29,6 +56,8 @@ public enum TokenType
     Then,
     While,
     For,
+    And,
+    Or,
     NewLine,
     WhiteSpace
 }
@@ -44,6 +73,8 @@ public class IdentifierTable
             {"WHILE", TokenType.While},
             {"THEN", TokenType.Then},
             {"END", TokenType.End },
+            {"and", TokenType.And },
+            {"or", TokenType.Or },
             {"PRINT", TokenType.PrintStatement}
         };
     public static Token GenerateIdentifier(string content) => Names.TryGetValue(content, out TokenType identifiedType) ? new(identifiedType, content) : new(TokenType.Identifier, content);

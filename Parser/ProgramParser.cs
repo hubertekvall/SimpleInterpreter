@@ -26,45 +26,45 @@ public class ProgramParser : ExpressionParser
     IStatement Block()
     {
         IStatement statements = new BlockStatement(StatementList());
-        Tokens.Expect(out _, TokenType.End);
+        Tokens.Expect(TokenType.End);
         return statements;
     }
 
 
+    IStatement ConditionalBlock()
+    {
+        Tokens.Expect(TokenType.Then);
+        return Block();
+    }
 
 
     List<IStatement> StatementList()
     {
         List<IStatement> stmntList = new();
-
         while (!Tokens.CheckToken(TokenType.End, TokenType.EndOfText))
         {
             stmntList.Add(Statement());
-        }
 
+        }
         return stmntList;
     }
 
 
     IStatement Statement()
     {
-
         Tokens.Match(out Token match, TokenType.While, TokenType.If, TokenType.PrintStatement);
-        var statement = match.Type switch
+        return match.Type switch
         {
             TokenType.If => ConditionalStatement(),
             TokenType.While => WhileStatement(),
-            _ => ExpressionStatement()
+            _ => ExpressionStatement(),
         };
-
-        return statement;
     }
 
-
-    IStatement ConditionalBlock()
+    public IExpression ConditionalExpression()
     {
-        Tokens.Expect(out _, TokenType.Then);
-        return Block();
+        Tokens.Expect(TokenType.Lparen);
+        return Parenthesis();
     }
 
 
@@ -72,21 +72,22 @@ public class ProgramParser : ExpressionParser
     {
         var expression = ConditionalExpression();
         var body = ConditionalBlock();
-   
-        if (Tokens.Match(out _, TokenType.ElseIf))
+
+
+        if (Tokens.Match(out Token match, TokenType.ElseIf, TokenType.Else))
         {
-            var elseIfStatement = ConditionalStatement();
-            return new ConditionalStatement(expression, body, elseIfStatement);
+            return match.Type switch
+            {
+                TokenType.ElseIf => new ConditionalStatement(expression, body, ConditionalStatement()),
+                TokenType.Else => new ConditionalStatement(expression, body, ConditionalBlock()),
+                _ => throw new Exception("Fatal error, should not occur")
+            };
         }
 
-        else if (Tokens.Match(out _, TokenType.Else))
+        else
         {
-            var elseStatement = ConditionalBlock();
-            return new ConditionalStatement(expression, body, elseStatement);
+            return new ConditionalStatement(expression, body, null);
         }
-
-
-        return new ConditionalStatement(expression, body, null);
     }
 
 
@@ -94,19 +95,21 @@ public class ProgramParser : ExpressionParser
     IStatement WhileStatement() => new WhileStatement(ConditionalExpression(), ConditionalBlock());
 
 
-    public IExpression ConditionalExpression()
-    {
-        Tokens.Expect(out _, TokenType.Lparen);
-        return Parenthesis();
-    }
 
 
 
     IStatement ExpressionStatement()
     {
-        var statement = new ExpressionStatement(Expression());
-        Tokens.ExpectNoSkip(out _, TokenType.NewLine, TokenType.End);
-        return statement;
+        IStatement? expressionStatement = null;
+
+        Tokens.SkipNewlines = false;
+        {
+            expressionStatement = new ExpressionStatement(Expression());
+            Tokens.Expect(TokenType.NewLine, TokenType.EndOfText);
+        }
+        Tokens.SkipNewlines = true;
+
+        return expressionStatement;
     }
 
 

@@ -1,6 +1,9 @@
 namespace SimpleInterpreter.Runtime.Operators;
 
 
+
+
+
 public sealed class GreaterOrEqualsOperator : IBinaryOperator
 {
     public object Execute(Object a, Object b) => (a, b) switch
@@ -9,6 +12,7 @@ public sealed class GreaterOrEqualsOperator : IBinaryOperator
         _ => throw new NotSupportedException("Invalid operation")
     };
 }
+
 
 public sealed class LesserOrEqualsOperator : IBinaryOperator
 {
@@ -23,7 +27,7 @@ public sealed class LesserThanOperator : IBinaryOperator
 {
     public object Execute(Object a, Object b) => (a, b) switch
     {
-        (double d1, double d2) => d1 > d2,
+        (double d1, double d2) => d1 < d2,
         _ => throw new NotSupportedException("Invalid operation")
     };
 }

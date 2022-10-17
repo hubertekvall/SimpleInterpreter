@@ -19,7 +19,7 @@ public class ExpressionParser : Parser
 
     public IExpression Assignment()
     {
-        IExpression root = Equality();
+        IExpression root = Logical();
 
         if (Tokens.Match(out _, TokenType.Assignment))
         {
@@ -33,6 +33,7 @@ public class ExpressionParser : Parser
         return root;
     }
 
+    public IExpression Logical() => MatchBinaryOperator(Equality, TokenType.And, TokenType.Or);
     public IExpression Equality() => MatchBinaryOperator(Relational, TokenType.Equals, TokenType.NotEquals);
     public IExpression Relational() => MatchBinaryOperator(Term, TokenType.GreaterOrEquals, TokenType.LesserOrEquals, TokenType.LesserThan, TokenType.GreaterThan);
     public IExpression Term() => MatchBinaryOperator(Factor, TokenType.Add, TokenType.Subtract);
@@ -70,7 +71,7 @@ public class ExpressionParser : Parser
 
         while (Tokens.Match(out Token matchedOperand, types))
         {
-            root = BinaryOperator.MakeOperator(matchedOperand, root, higherPrecedenceFunction());
+            root = new BinaryOperator(matchedOperand, root, higherPrecedenceFunction());
         }
 
         return root;

@@ -12,6 +12,7 @@ public record struct Variant(Object Payload)
     public bool LogicalEval() => Payload switch
     {
         double d => (int)d > 0,
+        bool b => b,
         string s => s.Length > 0,
         _ => throw new NotImplementedException()
     };
