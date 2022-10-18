@@ -1,15 +1,15 @@
 namespace SimpleInterpreter.Lexer;
 
-using SimpleInterpreter.Runtime.Operators;
+using SimpleInterpreter.Runtime;
 
 
 
 
-public struct TokenOperators
+public struct OperatorTokens
 {
     public static readonly Dictionary<TokenType, IBinaryOperator> BinaryOperators = new()
     {
-        {TokenType.Add, new AddOperator() },
+        {TokenType.Add, new AddOperator ()},
         {TokenType.Subtract, new SubtractOperator()},
         {TokenType.Multiply , new MultiplyOperator()},
         {TokenType.Divide , new DivideOperator()},
@@ -19,8 +19,6 @@ public struct TokenOperators
         {TokenType.GreaterOrEquals , new GreaterOrEqualsOperator()},
         {TokenType.NotEquals , new NotEqualsOperator()},
         {TokenType.Equals , new EqualsOperator()},
-        {TokenType.And , new AndOperator()},
-        {TokenType.Or , new OrOperator()},
     };
 }
 

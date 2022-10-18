@@ -1,4 +1,4 @@
-namespace SimpleInterpreter.Runtime.Operators;
+namespace SimpleInterpreter.Runtime;
 
 
 public sealed class AddOperator : IBinaryOperator

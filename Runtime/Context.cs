@@ -5,23 +5,16 @@ namespace SimpleInterpreter.Runtime;
 
 
 
-
-
-public record struct Variant(Object Payload)
+public static class Evaluation
 {
-    public bool LogicalEval() => Payload switch
+    public static bool IsTrue(this Object payload) => payload switch
     {
-        double d => (int)d > 0,
+        double d => d > 0,
         bool b => b,
         string s => s.Length > 0,
         _ => throw new NotImplementedException()
     };
 }
-
-
-
-
-
 
 
 

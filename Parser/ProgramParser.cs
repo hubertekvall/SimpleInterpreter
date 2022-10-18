@@ -1,7 +1,6 @@
 namespace SimpleInterpreter.Parser;
 using SimpleInterpreter.Runtime;
 using SimpleInterpreter.Lexer;
-using SimpleInterpreter.Runtime.Operators;
 
 public class ProgramParser : ExpressionParser
 {

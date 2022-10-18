@@ -1,11 +1,18 @@
 namespace SimpleInterpreter.Runtime;
-using SimpleInterpreter.Lexer;
 
 
 public interface IExpression
 {
     public Object Evaluate(Context context);
 }
+
+public abstract class ExpressionTree : IExpression
+{
+    public IExpression? Left { get; init; }
+    public IExpression? Right { get; init; }
+    public abstract object Evaluate(Context context);
+}
+
 
 
 public record class Literal(Object Payload) : IExpression
@@ -20,9 +27,6 @@ public record class Variable(string Name) : IExpression
 }
 
 
-
-
-
 public record class AssignmentExpression(string Identifier, IExpression Expression) : IExpression
 {
     public object Evaluate(Context context)
@@ -32,6 +36,5 @@ public record class AssignmentExpression(string Identifier, IExpression Expressi
         return result;
     }
 }
-
 
 

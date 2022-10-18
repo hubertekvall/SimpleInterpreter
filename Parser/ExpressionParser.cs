@@ -1,8 +1,8 @@
 namespace SimpleInterpreter.Parser;
 using SimpleInterpreter.Lexer;
 using SimpleInterpreter.Runtime;
-using SimpleInterpreter.Runtime.Operators;
 
+using static SimpleInterpreter.Lexer.TokenType;
 
 
 
@@ -33,7 +33,28 @@ public class ExpressionParser : Parser
         return root;
     }
 
-    public IExpression Logical() => MatchBinaryOperator(Equality, TokenType.And, TokenType.Or);
+    public IExpression Logical()
+    {
+        var root = Equality();
+        while (Tokens.Match(out Token matchedOperand, TokenType.And, TokenType.Or))
+        {
+            root = matchedOperand.Type switch
+            {
+                And => new AndExpression
+                {
+                    Left = root,
+                    Right = Equality()
+                },
+                Or => new OrExpression
+                {
+                    Left = root,
+                    Right = Equality()
+                }
+            };
+        }
+        return root;
+    }
+
     public IExpression Equality() => MatchBinaryOperator(Relational, TokenType.Equals, TokenType.NotEquals);
     public IExpression Relational() => MatchBinaryOperator(Term, TokenType.GreaterOrEquals, TokenType.LesserOrEquals, TokenType.LesserThan, TokenType.GreaterThan);
     public IExpression Term() => MatchBinaryOperator(Factor, TokenType.Add, TokenType.Subtract);
@@ -68,12 +89,7 @@ public class ExpressionParser : Parser
     public IExpression MatchBinaryOperator(Func<IExpression> higherPrecedenceFunction, params TokenType[] types)
     {
         var root = higherPrecedenceFunction();
-
-        while (Tokens.Match(out Token matchedOperand, types))
-        {
-            root = new BinaryOperator(matchedOperand, root, higherPrecedenceFunction());
-        }
-
+        while (Tokens.Match(out Token matchedOperand, types)) root = new BinaryOperatorExpression(matchedOperand, root, higherPrecedenceFunction());
         return root;
     }
 

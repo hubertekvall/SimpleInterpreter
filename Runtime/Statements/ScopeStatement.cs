@@ -22,7 +22,7 @@ public record class ConditionalStatement(IExpression Condition, IStatement Body,
 {
     public override void ExecuteScope(Context context)
     {
-        if (new Variant(Condition.Evaluate(context)).LogicalEval()) Body.Execute(context);
+        if (Condition.Evaluate(context).IsTrue()) Body.Execute(context);
         else if (ElseStatement is not null) ElseStatement.Execute(context);
     }
 }
@@ -32,6 +32,6 @@ public record class WhileStatement(IExpression Condition, IStatement Body) : Sco
 {
     public override void ExecuteScope(Context context)
     {
-        while (new Variant(Condition.Evaluate(context)).LogicalEval()) Body.Execute(context);
+        while (Condition.Evaluate(context).IsTrue()) Body.Execute(context);
     }
 }

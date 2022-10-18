@@ -1,5 +1,5 @@
 ﻿namespace SimpleInterpreter.Lexer;
-using SimpleInterpreter.Runtime.Operators;
+using SimpleInterpreter.Runtime;
 
 
 public struct Lexer
