@@ -10,47 +10,32 @@ public struct Lexer
 
 
     public Lexer(string text) => this._text = text;
+
     bool Empty() => _offset >= _text.Length;
 
+    char Advance() => Empty() ? _text[_offset - 1] : _text[_offset++];
 
-    char Advance()
+    char Peek() => Empty() ? '\0' : _text[_offset];
+
+    void StartNewToken() => _startPointer = _offset;
+
+    string GetContent() => _text[_startPointer.._offset];
+
+
+
+    public bool Eat(char match)
     {
-        if (!Empty()) _offset++;
-        return _text[_offset - 1];
-    }
-
-    char Peek()
-    {
-        if (!Empty()) return _text[_offset];
-        else return '\0';
-    }
-
-
-    void StartNewToken()
-    {
-        _startPointer = _offset;
-    }
-
-    string GetContent()
-    {
-        var content = _text[_startPointer.._offset];
-        return content;
-    }
-
-
-    public bool Chomp(Func<Char, bool> matchFunction)
-    {
-        if (matchFunction(Peek()))
+        if (Peek() == match)
         {
             Advance();
             return true;
         }
 
-        return false;
+        else return false;
     }
 
 
-    public bool ChompWhile(Func<Char, bool> matchFunction)
+    public bool EatWhile(Func<Char, bool> matchFunction)
     {
         bool status = false;
         while (matchFunction(Peek()))
@@ -65,53 +50,44 @@ public struct Lexer
 
     public Token Identifier()
     {
-        ChompWhile(Char.IsLetterOrDigit);
-        return IdentifierTable.GenerateIdentifier(GetContent());
+        EatWhile(Char.IsLetterOrDigit);
+        return IdentifierTable.GenerateIdentifierToken(GetContent());
     }
 
-
-    public Token Comparison()
-    {
-        return Peek() switch
-        {
-            '>' => new Token(TokenType.GreaterOrEquals),
-            '<' => new Token(TokenType.LesserOrEquals),
-            '=' => new Token(TokenType.Equals),
-            _ => new Token(TokenType.Assignment)
-        };
-    }
 
 
     public Token Number()
     {
-        ChompWhile(Char.IsDigit);
-        if (Chomp((char c) => c == '.') && !ChompWhile(Char.IsDigit))
+        EatWhile(Char.IsDigit);
+        if (Eat('.'))
         {
+            if (EatWhile(Char.IsDigit)) return new Token(TokenType.Number, GetContent());
             throw new Exception("Ill-formed number literal");
         }
-        
         return new Token(TokenType.Number, GetContent());
     }
+
+
 
 
     public Token StringLiteral(char quoteType)
     {
         if (quoteType == '\'')
         {
-            ChompWhile((char c) => c != '\'');
+            EatWhile((char c) => c != '\'');
         }
 
         else
         {
-            ChompWhile((char c) => c != '"');
+            EatWhile((char c) => c != '"');
         }
 
+
         Advance();
-        var content = GetContent();
-        return new Token(TokenType.StringLiteral, content[1..^1]);
+
+        return new Token(TokenType.StringLiteral, GetContent()[1..^1]);
     }
 
-    Token GenerateToken(TokenType type) => new Token(type, GetContent());
 
 
 
@@ -130,9 +106,21 @@ public struct Lexer
                 case ' ':
                     break;
 
+
+                
                 case '\n':
                     yield return TokenType.NewLine;
                     break;
+
+
+                case '(':
+                    yield return TokenType.Lparen;
+                    break;
+                case ')':
+                    yield return TokenType.Rparen;
+                    break;
+
+
 
                 // Arithmetic operators
                 case '+':
@@ -153,7 +141,7 @@ public struct Lexer
 
 
 
-                // Comparison
+                // Comparison, Relational and Logical operators
                 case '=':
                     if (Peek() == '=') yield return TokenType.Equals;
                     else yield return TokenType.Assignment;
@@ -175,23 +163,22 @@ public struct Lexer
 
 
 
-
-                case char ident when char.IsLetter(ident):
+                // Identifiers and literals
+                case char id when char.IsLetter(id):
                     yield return Identifier();
                     break;
+
                 case char number when char.IsDigit(number):
                     yield return Number();
                     break;
+
                 case char quote when (quote == '"' || quote == '\''):
                     yield return StringLiteral(quote);
                     break;
 
-                case '(':
-                    yield return TokenType.Lparen;
-                    break;
-                case ')':
-                    yield return TokenType.Rparen;
-                    break;
+
+
+
 
                 default:
                     throw new Exception($"Invalid character: '{currentCharacter}'");
@@ -203,7 +190,6 @@ public struct Lexer
 
     public static Stack<Token> Lex(string source)
     {
-
         Lexer lexer = new Lexer(source);
         return new Stack<Token>(lexer.GetTokens().Reverse());
     }

@@ -87,7 +87,7 @@ public class IdentifierTable
             {"PRINT", TokenType.Print},
             {"SQRT", TokenType.Sqrt},
         };
-    public static Token GenerateIdentifier(string content) => Names.TryGetValue(content, out TokenType identifiedType) ? new(identifiedType, content) : new(TokenType.Identifier, content);
+    public static Token GenerateIdentifierToken(string content) => Names.TryGetValue(content, out TokenType identifiedType) ? new(identifiedType, content) : new(TokenType.Identifier, content);
 }
 
 public record struct Token(TokenType Type, string Content = "")
