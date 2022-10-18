@@ -3,35 +3,28 @@ using SimpleInterpreter.Lexer;
 
 
 
-
-public record class UnaryOperator(Token Operator, IExpression Expression) : IExpression
+public interface IUnaryOperator
 {
-    public Object Evaluate(Context context)
+    public object Execute(object expression);
+}
+
+
+
+public class UnaryOperatorExpression : IExpression
+{
+    IExpression Expression { get; init; }
+    IUnaryOperator Operator { get; set; }
+
+    public UnaryOperatorExpression(Token operatorToken, IExpression expression)
     {
-        var operandA = Expression.Evaluate(context);
-        return Operator.Type switch
-        {
-            TokenType.Not => Not(operandA),
-            TokenType.Subtract => Negate(operandA),
-            _ => throw new NotSupportedException("Invalid operator")
-        };
+        Expression = expression;
+        Operator = OperatorTokens.UnaryOperators[operatorToken];
     }
 
-    public Object Not(Object v1)
-    {
-        return v1 switch
-        {
-            bool b => !b,
-            _ => throw new NotSupportedException("Invalid type for operation")
-        };
-    }
 
-    public Object Negate(Object v1)
+
+    public object Evaluate(Context context)
     {
-        return v1 switch
-        {
-            double d => -d,
-            _ => throw new NotSupportedException("Invalid type for operation")
-        };
+        return Operator.Execute(Expression.Evaluate(context));
     }
 }

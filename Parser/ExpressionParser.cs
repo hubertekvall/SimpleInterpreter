@@ -2,20 +2,18 @@ namespace SimpleInterpreter.Parser;
 using SimpleInterpreter.Lexer;
 using SimpleInterpreter.Runtime;
 
+using System.Globalization;
 using static SimpleInterpreter.Lexer.TokenType;
 
 
 
-public class ExpressionParser : Parser
+public record class ExpressionParser(TokenStream Tokens)
 {
 
     public IExpression Expression()
     {
         return Assignment();
     }
-
-
-
 
     public IExpression Assignment()
     {
@@ -32,6 +30,14 @@ public class ExpressionParser : Parser
 
         return root;
     }
+
+
+    public IExpression Keyword()
+    {
+        if (Tokens.Match(out Token matchedOperand, TokenType.Sqrt)) return new UnaryOperatorExpression(matchedOperand, Keyword());
+        return Equality();
+    }
+
 
     public IExpression Logical()
     {
@@ -60,20 +66,24 @@ public class ExpressionParser : Parser
     public IExpression Term() => MatchBinaryOperator(Factor, TokenType.Add, TokenType.Subtract);
     public IExpression Factor() => MatchBinaryOperator(Unary, TokenType.Multiply, TokenType.Divide);
 
-    public IExpression Unary() => Tokens.Peek().Type switch
+
+
+    public IExpression Unary()
     {
-        TokenType.Add or TokenType.Subtract => new UnaryOperator(Tokens.Advance(), Primary()),
-        _ => Primary()
-    };
+        if (Tokens.Match(out Token matchedOperand, TokenType.Not, TokenType.Subtract, TokenType.Sqrt, TokenType.Print)) return new UnaryOperatorExpression(matchedOperand, Unary());
+        return Primary();
+    }
 
 
     public IExpression Primary()
     {
-        if (Tokens.Match(out Token matchedNumber, TokenType.Number)) return new Literal(double.Parse(matchedNumber.Content));
+
+        if (Tokens.Match(out Token matchedNumber, TokenType.Number)) return new Literal(Double.Parse(matchedNumber.Content, CultureInfo.InvariantCulture));
         else if (Tokens.Match(out Token matchedString, TokenType.StringLiteral)) return new Literal(matchedString.Content);
         else if (Tokens.Match(out Token identifierMatch, TokenType.Identifier)) return new Variable(identifierMatch.Content);
         else if (Tokens.Match(out _, TokenType.Lparen)) return Parenthesis();
         else throw new Exception($"Expected an expression but got: {Tokens.Advance()}");
+
     }
 
 

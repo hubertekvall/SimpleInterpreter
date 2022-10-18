@@ -89,7 +89,7 @@ public struct Lexer
         {
             throw new Exception("Ill-formed number literal");
         }
-
+        
         return new Token(TokenType.Number, GetContent());
     }
 

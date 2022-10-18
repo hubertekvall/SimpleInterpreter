@@ -1,4 +1,4 @@
-﻿namespace SimpleInterpreter.Parser;
+﻿namespace SimpleInterpreter.Lexer;
 using SimpleInterpreter.Lexer;
 
 

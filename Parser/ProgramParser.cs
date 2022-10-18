@@ -2,25 +2,15 @@ namespace SimpleInterpreter.Parser;
 using SimpleInterpreter.Runtime;
 using SimpleInterpreter.Lexer;
 
-public class ProgramParser : ExpressionParser
+public record class ProgramParser(TokenStream Tokens) : ExpressionParser(Tokens)
 {
-
     public static IStatement Parse(string code)
     {
-        ProgramParser parser = new ProgramParser
-        {
-            Tokens = new TokenStream(code)
-        };
-
+        ProgramParser parser = new ProgramParser(new TokenStream(code));
         return parser.Program();
     }
 
-
-
     public IStatement Program() => new BlockStatement(StatementList());
-
-
-
 
     IStatement Block()
     {
@@ -51,11 +41,12 @@ public class ProgramParser : ExpressionParser
 
     IStatement Statement()
     {
-        Tokens.Match(out Token match, TokenType.While, TokenType.If, TokenType.PrintStatement);
+        Tokens.Match(out Token match, TokenType.While, TokenType.If);
         return match.Type switch
         {
             TokenType.If => ConditionalStatement(),
             TokenType.While => WhileStatement(),
+            // TokenType.Print => PrintStatement(),
             _ => ExpressionStatement(),
         };
     }
@@ -89,23 +80,17 @@ public class ProgramParser : ExpressionParser
         }
     }
 
-
-
     IStatement WhileStatement() => new WhileStatement(ConditionalExpression(), ConditionalBlock());
-
-
-
-
+    // IStatement PrintStatement() => new PrintStatement(Expression());
 
     IStatement ExpressionStatement()
     {
-        IStatement? expressionStatement = null;
+   
+
 
         Tokens.SkipNewlines = false;
-        {
-            expressionStatement = new ExpressionStatement(Expression());
-            Tokens.Expect(TokenType.NewLine, TokenType.EndOfText);
-        }
+        IStatement expressionStatement = new ExpressionStatement(Expression());
+        Tokens.Expect(TokenType.NewLine, TokenType.EndOfText);
         Tokens.SkipNewlines = true;
 
         return expressionStatement;

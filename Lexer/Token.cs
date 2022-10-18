@@ -20,22 +20,34 @@ public struct OperatorTokens
         {TokenType.NotEquals , new NotEqualsOperator()},
         {TokenType.Equals , new EqualsOperator()},
     };
+    public static readonly Dictionary<TokenType, IUnaryOperator> UnaryOperators = new()
+    {
+        {TokenType.Sqrt, new SquareRootOperator()},
+        {TokenType.Subtract, new NegationOperator()},
+        {TokenType.Print, new PrintOperator()},
+    };
 }
 
 
 
 public enum TokenType
 {
-    PrintStatement,
+    Print,
+    Sqrt,
+
     EndOfText,
+
     Identifier,
+
     Lparen,
     Rparen,
+
     Add,
     Subtract,
     Multiply,
     Divide,
     Mod,
+
     Number,
     StringLiteral,
     VariableDeclaration,
@@ -56,14 +68,13 @@ public enum TokenType
     For,
     And,
     Or,
-    NewLine,
-    WhiteSpace
+    NewLine
 }
 
 
 public class IdentifierTable
 {
-    static readonly Dictionary<string, TokenType> Names = new Dictionary<string, TokenType>
+    public static readonly Dictionary<string, TokenType> Names = new Dictionary<string, TokenType>
         {
             {"IF", TokenType.If },
             {"ELSEIF", TokenType.ElseIf},
@@ -71,9 +82,10 @@ public class IdentifierTable
             {"WHILE", TokenType.While},
             {"THEN", TokenType.Then},
             {"END", TokenType.End },
-            {"and", TokenType.And },
-            {"or", TokenType.Or },
-            {"PRINT", TokenType.PrintStatement}
+            {"AND", TokenType.And },
+            {"OR", TokenType.Or },
+            {"PRINT", TokenType.Print},
+            {"SQRT", TokenType.Sqrt},
         };
     public static Token GenerateIdentifier(string content) => Names.TryGetValue(content, out TokenType identifiedType) ? new(identifiedType, content) : new(TokenType.Identifier, content);
 }
