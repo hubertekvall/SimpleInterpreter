@@ -1,7 +1,4 @@
 ﻿namespace SimpleInterpreter.Lexer;
-using SimpleInterpreter.Runtime;
-
-
 public struct Lexer
 {
     readonly string _text;
@@ -107,7 +104,7 @@ public struct Lexer
                     break;
 
 
-                
+
                 case '\n':
                     yield return TokenType.NewLine;
                     break;

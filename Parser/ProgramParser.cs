@@ -1,6 +1,6 @@
 namespace SimpleInterpreter.Parser;
-using SimpleInterpreter.Runtime;
 using SimpleInterpreter.Lexer;
+using SimpleInterpreter.Runtime;
 
 public record class ProgramParser(TokenStream Tokens) : ExpressionParser(Tokens)
 {
@@ -46,7 +46,6 @@ public record class ProgramParser(TokenStream Tokens) : ExpressionParser(Tokens)
         {
             TokenType.If => ConditionalStatement(),
             TokenType.While => WhileStatement(),
-            // TokenType.Print => PrintStatement(),
             _ => ExpressionStatement(),
         };
     }
@@ -81,12 +80,9 @@ public record class ProgramParser(TokenStream Tokens) : ExpressionParser(Tokens)
     }
 
     IStatement WhileStatement() => new WhileStatement(ConditionalExpression(), ConditionalBlock());
-   
+
     IStatement ExpressionStatement()
     {
-   
-
-
         Tokens.SkipNewlines = false;
         IStatement expressionStatement = new ExpressionStatement(Expression());
         Tokens.Expect(TokenType.NewLine, TokenType.EndOfText);

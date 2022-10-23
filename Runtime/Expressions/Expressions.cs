@@ -6,6 +6,13 @@ public interface IExpression
     public Object Evaluate(Context context);
 }
 
+public abstract class ExpressionTree : IExpression
+{
+    public IExpression? Left { get; init; }
+    public IExpression? Right { get; init; }
+    public abstract object Evaluate(Context context);
+}
+
 
 
 public record class Literal(Object Payload) : IExpression

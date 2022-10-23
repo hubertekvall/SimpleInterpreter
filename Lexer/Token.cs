@@ -9,22 +9,22 @@ public struct OperatorTokens
 {
     public static readonly Dictionary<TokenType, IBinaryOperator> BinaryOperators = new()
     {
-        {TokenType.Add, new AddOperator ()},
-        {TokenType.Subtract, new SubtractOperator()},
-        {TokenType.Multiply , new MultiplyOperator()},
-        {TokenType.Divide , new DivideOperator()},
-        {TokenType.LesserThan , new LesserThanOperator()},
-        {TokenType.LesserOrEquals , new LesserOrEqualsOperator()},
-        {TokenType.GreaterThan , new GreaterThanOperator()},
-        {TokenType.GreaterOrEquals , new GreaterOrEqualsOperator()},
-        {TokenType.NotEquals , new NotEqualsOperator()},
-        {TokenType.Equals , new EqualsOperator()},
+        { TokenType.Add, new AddOperator() },
+        { TokenType.Subtract, new SubtractOperator() },
+        { TokenType.Multiply, new MultiplyOperator() },
+        { TokenType.Divide, new DivideOperator() },
+        { TokenType.LesserThan, new LesserThanOperator() },
+        { TokenType.LesserOrEquals, new LesserOrEqualsOperator() },
+        { TokenType.GreaterThan, new GreaterThanOperator() },
+        { TokenType.GreaterOrEquals, new GreaterOrEqualsOperator() },
+        { TokenType.NotEquals, new NotEqualsOperator() },
+        { TokenType.Equals, new EqualsOperator() },
     };
     public static readonly Dictionary<TokenType, IUnaryOperator> UnaryOperators = new()
     {
-        {TokenType.Sqrt, new SquareRootOperator()},
-        {TokenType.Subtract, new NegationOperator()},
-        {TokenType.Print, new PrintOperator()},
+        { TokenType.Sqrt, new SquareRootOperator() },
+        { TokenType.Subtract, new NegationOperator() },
+        { TokenType.Print, new PrintOperator() },
     };
 }
 

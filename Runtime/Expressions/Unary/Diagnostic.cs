@@ -1,4 +1,3 @@
-using System;
 namespace SimpleInterpreter.Runtime;
 
 public sealed class PrintOperator : IUnaryOperator

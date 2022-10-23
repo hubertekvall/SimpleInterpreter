@@ -15,9 +15,9 @@ public record class ExpressionStatement(IExpression Expression) : IStatement
 
         var result = Expression.Evaluate(context);
 
-        #if DEBUG
+#if DEBUG
         Console.WriteLine(result);
-        #endif
+#endif
 
     }
 }
