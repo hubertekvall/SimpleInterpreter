@@ -1,38 +1,37 @@
-namespace SimpleInterpreter.Runtime;
+namespace SimpleInterpreter;
 
 
-public interface IExpression
+
+
+
+public sealed class Literal : IExpression
 {
-    public Object Evaluate(Context context);
+    public Object? Data { get; init; }
+
+    public Variant Evaluate(Context context) => Data switch
+    {
+        double number => number,
+        string str => str,
+        _ => Empty.Value
+    };
 }
 
-public abstract class ExpressionTree : IExpression
+public sealed class Variable : IExpression
 {
-    public IExpression? Left { get; init; }
-    public IExpression? Right { get; init; }
-    public abstract object Evaluate(Context context);
-}
-
-
-
-public record class Literal(Object Payload) : IExpression
-{
-    public object Evaluate(Context context) => Payload;
-}
-
-
-public record class Variable(string Name) : IExpression
-{
-    public object Evaluate(Context context) => context.Load(Name);
+    public string Name { get; init; }
+    public Variant Evaluate(Context context) => context.LookupVariable(Name);
 }
 
 
-public record class AssignmentExpression(string Identifier, IExpression Expression) : IExpression
+public class AssignmentExpression : IExpression
 {
-    public object Evaluate(Context context)
+    public string Identifier { get; init; }
+    public IExpression Expression { get; init; }
+
+    public Variant Evaluate(Context context)
     {
         var result = Expression.Evaluate(context);
-        context.Store(Identifier, result);
+        context.StoreVariable(Identifier, result);
         return result;
     }
 }

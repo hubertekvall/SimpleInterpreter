@@ -1,6 +1,5 @@
-namespace SimpleInterpreter.Parser;
-using SimpleInterpreter.Lexer;
-using SimpleInterpreter.Runtime;
+namespace SimpleInterpreter;
+
 
 public record class ProgramParser(TokenStream Tokens) : ExpressionParser(Tokens)
 {
@@ -10,32 +9,26 @@ public record class ProgramParser(TokenStream Tokens) : ExpressionParser(Tokens)
         return parser.Program();
     }
 
-    public IStatement Program() => new BlockStatement(StatementList());
+    public IStatement Program() => new BlockTree { Statements = StatementList() };
 
     IStatement Block()
     {
-        IStatement statements = new BlockStatement(StatementList());
+        IStatement statements = new BlockTree { Statements = StatementList() };
         Tokens.Expect(TokenType.End);
         return statements;
     }
 
 
-    IStatement ConditionalBlock()
-    {
-        Tokens.Expect(TokenType.Then);
-        return Block();
-    }
 
 
     List<IStatement> StatementList()
     {
-        List<IStatement> stmntList = new();
+        List<IStatement> statementList = new();
         while (!Tokens.CheckToken(TokenType.End, TokenType.EndOfText))
         {
-            stmntList.Add(Statement());
-
+            statementList.Add(Statement());
         }
-        return stmntList;
+        return statementList;
     }
 
 
@@ -50,11 +43,23 @@ public record class ProgramParser(TokenStream Tokens) : ExpressionParser(Tokens)
         };
     }
 
-    public IExpression ConditionalExpression()
+
+
+
+
+    IStatement ConditionalBlock()
+    {
+        Tokens.Expect(TokenType.Then);
+        return Block();
+    }
+
+
+    IExpression ConditionalExpression()
     {
         Tokens.Expect(TokenType.Lparen);
         return Parenthesis();
     }
+
 
 
     IStatement ConditionalStatement()
@@ -62,29 +67,30 @@ public record class ProgramParser(TokenStream Tokens) : ExpressionParser(Tokens)
         var expression = ConditionalExpression();
         var body = ConditionalBlock();
 
-
         if (Tokens.Match(out Token match, TokenType.ElseIf, TokenType.Else))
         {
             return match.Type switch
             {
-                TokenType.ElseIf => new ConditionalStatement(expression, body, ConditionalStatement()),
-                TokenType.Else => new ConditionalStatement(expression, body, ConditionalBlock()),
+                TokenType.ElseIf => new ConditionalStatementTree { Conditional = expression, MainBranch = body, ElseBranch = ConditionalStatement() },
+                TokenType.Else => new ConditionalStatementTree { Conditional = expression, MainBranch = body, ElseBranch = ConditionalBlock() },
                 _ => throw new Exception("Fatal error, should not occur")
             };
         }
 
         else
         {
-            return new ConditionalStatement(expression, body, null);
+            return new ConditionalStatementTree { Conditional = expression, MainBranch = body, ElseBranch = Empty.Statement };
         }
     }
 
-    IStatement WhileStatement() => new WhileStatement(ConditionalExpression(), ConditionalBlock());
+
+
+    IStatement WhileStatement() => new WhileStatementTree { Conditional = ConditionalExpression(), Body = ConditionalBlock() };
 
     IStatement ExpressionStatement()
     {
         Tokens.SkipNewlines = false;
-        IStatement expressionStatement = new ExpressionStatement(Expression());
+        IStatement expressionStatement = new ExpressionStatement { Expression = Expression() };
         Tokens.Expect(TokenType.NewLine, TokenType.EndOfText);
         Tokens.SkipNewlines = true;
 

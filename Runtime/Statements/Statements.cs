@@ -1,32 +1,27 @@
-namespace SimpleInterpreter.Runtime;
+namespace SimpleInterpreter;
 
 
 
-public interface IStatement
-{
-    public void Execute(Context context);
-}
-
-
-public record class ExpressionStatement(IExpression Expression) : IStatement
+public abstract class ScopedTree : IStatement
 {
     public void Execute(Context context)
     {
-
-        var result = Expression.Evaluate(context);
-
-#if DEBUG
-        Console.WriteLine(result);
-#endif
-
+        context.PushScope();
+        ExecuteScope(context);
+        context.PopScope();
     }
+    public abstract void ExecuteScope(Context context);
 }
 
 
-public record class BlockStatement(IEnumerable<IStatement> Statements) : ScopeStatement
-{
 
-    public override void ExecuteScope(Context context)
+
+public sealed class BlockTree : IStatement
+{
+    public List<IStatement> Statements { get; init; }
+
+
+    public void Execute(Context context)
     {
         foreach (var statement in Statements)
         {
@@ -36,13 +31,50 @@ public record class BlockStatement(IEnumerable<IStatement> Statements) : ScopeSt
 }
 
 
-public record class PrintStatement(IExpression Expression) : IStatement
+
+public sealed class WhileStatementTree : ScopedTree
 {
-    public void Execute(Context context)
+    public IExpression Conditional { get; init; }
+    public IStatement Body { get; init; }
+
+    public override void ExecuteScope(Context context)
     {
-        var result = Expression.Evaluate(context);
-        Console.WriteLine(result);
+        while (Conditional.Evaluate(context).IsTrue())
+        {
+            Body.Execute(context);
+        }
     }
 }
 
 
+public sealed class ConditionalStatementTree : ScopedTree
+{
+    public IExpression Conditional { get; init; }
+    public IStatement MainBranch { get; init; }
+    public IStatement ElseBranch = Empty.Statement;
+
+    public override void ExecuteScope(Context context)
+    {
+        // If statement was succesful, execute the main branch
+        if (Conditional.Evaluate(context).IsTrue()) MainBranch.Execute(context);
+
+        // Try to execute the else-branch
+        else ElseBranch.Execute(context);
+    }
+}
+
+
+public sealed class ExpressionStatement : IStatement
+{
+    public IExpression Expression { get; init; }
+    public void Execute(Context context)
+    {
+        var result = Expression.Evaluate(context);
+
+
+#if DEBUG
+        Console.WriteLine(result);
+#endif
+
+    }
+}

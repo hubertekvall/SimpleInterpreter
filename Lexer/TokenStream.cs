@@ -1,4 +1,4 @@
-﻿namespace SimpleInterpreter.Lexer;
+﻿namespace SimpleInterpreter;
 public class TokenStream
 {
     Stack<Token> Buffer { get; init; }

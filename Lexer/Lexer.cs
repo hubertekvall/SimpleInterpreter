@@ -1,4 +1,4 @@
-﻿namespace SimpleInterpreter.Lexer;
+﻿namespace SimpleInterpreter;
 public struct Lexer
 {
     readonly string _text;

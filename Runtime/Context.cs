@@ -1,60 +1,89 @@
-namespace SimpleInterpreter.Runtime;
+namespace SimpleInterpreter;
 
 
 
 
 
 
-public static class Evaluation
+
+
+
+// Null object to be used as placeholder for any invalid actions or misconstructed trees and to avoid any null-reference exceptions
+public class Empty
 {
-    public static bool IsTrue(this Object payload) => payload switch
+    public static readonly Empty Value = new Empty();
+    public static readonly IStatement Statement = new DummyStatement();
+    public static readonly IExpression Expression = new DummyExpression();
+
+
+    class DummyStatement : IStatement
     {
-        double d => d > 0,
-        bool b => b,
-        string s => s.Length > 0,
-        _ => throw new NotImplementedException()
-    };
+        public void Execute(Context context) { }
+    }
+    class DummyExpression : IExpression
+    {
+        public Variant Evaluate(Context context) => Value;
+    }
+   ;
+    public override string ToString() => "Empty object";
+}
+
+
+
+
+
+
+
+
+
+
+public class Scope
+{
+    public readonly Dictionary<string, Variant> Variables = new Dictionary<string, Variant>();
 }
 
 
 
 public class Context
 {
-    readonly Stack<Dictionary<string, Object>> _memory = new Stack<Dictionary<string, Object>>();
+    Stack<Scope> scopes = new Stack<Scope>();
 
-
-    public void EnterScope() => _memory.Push(new Dictionary<string, object>());
-    public void ExitScope() => _memory.Pop();
-
-
-
-
-    public Object Load(string identifier)
+    public Context()
     {
-        foreach (var dict in _memory.Reverse())
-        {
-            if (dict.TryGetValue(identifier, out Object? value))
-            {
-                return value;
-            }
-        }
-
-        return "N/A";
-    }
-
-    public void Store(string identifier, Object value)
-    {
-        foreach (var dict in _memory.Reverse())
-        {
-            if (dict.ContainsKey(identifier))
-            {
-                dict[identifier] = value;
-                return;
-            }
-        }
-        _memory.Last().Add(identifier, value);
+        PushScope();
     }
 
 
+    public void PushScope()
+    {
+        scopes.Push(new Scope());
+    }
+
+    public void PopScope()
+    {
+        scopes.Pop();
+    }
+
+
+
+
+    public Variant LookupVariable(string name)
+    {
+        foreach (Scope scope in scopes.Reverse<Scope>())
+        {
+            if (scope.Variables.ContainsKey(name)) return scope.Variables[name];
+        }
+
+        return Empty.Value;
+    }
+
+    public void StoreVariable(string name, Variant payload)
+    {
+        foreach (Scope scope in scopes.Reverse<Scope>())
+        {
+            if (scope.Variables.ContainsKey(name)) scope.Variables[name] = payload;
+        }
+
+        scopes.Last().Variables[name] = payload;
+    }
 }
-
