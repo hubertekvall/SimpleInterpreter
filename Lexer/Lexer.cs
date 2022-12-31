@@ -4,6 +4,7 @@ public struct Lexer
     readonly string _text;
     int _startPointer = 0;
     int _offset = 0;
+    int _lineCount = 1;
 
 
     public Lexer(string text) => this._text = text;
@@ -17,6 +18,8 @@ public struct Lexer
     void StartNewToken() => _startPointer = _offset;
 
     string GetContent() => _text[_startPointer.._offset];
+
+    Token CreateToken(TokenType type, string content) => new Token(type, _lineCount, content);
 
 
 
@@ -48,7 +51,8 @@ public struct Lexer
     public Token Identifier()
     {
         EatWhile(Char.IsLetterOrDigit);
-        return IdentifierTable.GenerateIdentifierToken(GetContent());
+        var identifier = GetContent();
+        return CreateToken(IdentifierTable.GetIdentifier(identifier), identifier);
     }
 
 
@@ -58,10 +62,10 @@ public struct Lexer
         EatWhile(Char.IsDigit);
         if (Eat('.'))
         {
-            if (EatWhile(Char.IsDigit)) return new Token(TokenType.Number, GetContent());
+            if (EatWhile(Char.IsDigit)) return CreateToken(TokenType.Number, GetContent());
             throw new Exception("Ill-formed number literal");
         }
-        return new Token(TokenType.Number, GetContent());
+        return CreateToken(TokenType.Number, GetContent());
     }
 
 
@@ -82,7 +86,7 @@ public struct Lexer
 
         Advance();
 
-        return new Token(TokenType.StringLiteral, GetContent()[1..^1]);
+        return CreateToken(TokenType.StringLiteral, GetContent()[1..^1]);
     }
 
 
@@ -106,6 +110,7 @@ public struct Lexer
 
 
                 case '\n':
+                    _lineCount++;
                     yield return TokenType.NewLine;
                     break;
 
@@ -174,9 +179,6 @@ public struct Lexer
                     break;
 
 
-
-
-
                 default:
                     throw new Exception($"Invalid character: '{currentCharacter}'");
             }
@@ -190,6 +192,8 @@ public struct Lexer
         Lexer lexer = new Lexer(source);
         return new Stack<Token>(lexer.GetTokens().Reverse());
     }
+
+
 
 
 

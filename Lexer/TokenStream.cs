@@ -2,7 +2,7 @@
 public class TokenStream
 {
     Stack<Token> Buffer { get; init; }
-    public bool SkipNewlines { get; set; }
+    public bool SkipNewlines = true;
 
     public TokenStream(string code)
     {
@@ -34,8 +34,6 @@ public class TokenStream
 
             return currentToken;
         }
-
-
         return TokenType.EndOfText;
     }
 
@@ -72,19 +70,16 @@ public class TokenStream
 
     public void Expect(params TokenType[] types)
     {
-
         if (!Match(out Token matchedToken, types))
         {
             var tokenTypesString = string.Join(", ", types);
-            var message = $"Expected {tokenTypesString} but got {Peek().Type}";
+            var message = $"Expected {tokenTypesString} but got {Peek().Type} at line number: {Peek().Line}";
             throw new Exception(message);
         }
-
-
     }
 
 
-
+  
 
 }
 

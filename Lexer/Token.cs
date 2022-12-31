@@ -63,10 +63,10 @@ public class IdentifierTable
             {"PRINT", TokenType.Print},
             {"SQRT", TokenType.Sqrt},
         };
-    public static Token GenerateIdentifierToken(string content) => Names.TryGetValue(content, out TokenType identifiedType) ? new(identifiedType, content) : new(TokenType.Identifier, content);
+    public static TokenType GetIdentifier(string content) => Names.TryGetValue(content, out TokenType identifiedType) ? identifiedType : TokenType.Identifier;
 }
 
-public record struct Token(TokenType Type, string Content = "")
+public record struct Token(TokenType Type, int Line = 0, string Content = "" )
 {
     public static implicit operator TokenType(Token token) => token.Type;
     public static implicit operator Token(TokenType type) => new Token(type);

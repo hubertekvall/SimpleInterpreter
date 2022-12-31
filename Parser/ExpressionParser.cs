@@ -29,11 +29,6 @@ public record class ExpressionParser(TokenStream Tokens)
     }
 
 
-
-
-
-
-
     public IExpression Logical() => MatchBinaryOperator(Equality, TokenType.And, TokenType.Or);
     public IExpression Equality() => MatchBinaryOperator(Relational, TokenType.Equals, TokenType.NotEquals);
     public IExpression Relational() => MatchBinaryOperator(Term, TokenType.GreaterOrEquals, TokenType.LesserOrEquals, TokenType.LesserThan, TokenType.GreaterThan);
@@ -56,7 +51,12 @@ public record class ExpressionParser(TokenStream Tokens)
         else if (Tokens.Match(out Token matchedString, TokenType.StringLiteral)) return new Literal { Data = matchedString.Content };
         else if (Tokens.Match(out Token identifierMatch, TokenType.Identifier)) return new Variable { Name = identifierMatch.Content };
         else if (Tokens.Match(out _, TokenType.Lparen)) return Parenthesis();
-        else throw new Exception($"Expected an expression but got: {Tokens.Advance()}");
+        else
+        {   
+            var token = Tokens.Advance();
+            var line = token.Line;
+            throw new Exception($"Expected an expression but got: {token} at line: {line}");
+        }
 
     }
 

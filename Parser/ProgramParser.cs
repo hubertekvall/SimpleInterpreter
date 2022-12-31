@@ -9,40 +9,41 @@ public record class ProgramParser(TokenStream Tokens) : ExpressionParser(Tokens)
         return parser.Program();
     }
 
-    public IStatement Program() => new BlockTree { Statements = StatementList() };
+
+    public IStatement Program()
+    {
+        return new BlockTree { Statements = Statements(TokenType.EndOfText) };
+    }
+
 
     IStatement Block()
     {
-        IStatement statements = new BlockTree { Statements = StatementList() };
+        IStatement block = new BlockTree { Statements = Statements(TokenType.End) };
         Tokens.Expect(TokenType.End);
-        return statements;
+        return block;
     }
 
 
 
-
-    List<IStatement> StatementList()
+    List<IStatement> Statements(TokenType stopToken)
     {
         List<IStatement> statementList = new();
-        while (!Tokens.CheckToken(TokenType.End, TokenType.EndOfText))
+        while (!Tokens.CheckToken(stopToken))
         {
-            statementList.Add(Statement());
+            Tokens.Match(out Token match, TokenType.While, TokenType.If);
+
+            IStatement nextStatement = match.Type switch
+            {
+                TokenType.If => ConditionalStatement(),
+                TokenType.While => WhileStatement(),
+                _ => ExpressionStatement(),
+            };
+
+            statementList.Add(nextStatement);
         }
+
         return statementList;
     }
-
-
-    IStatement Statement()
-    {
-        Tokens.Match(out Token match, TokenType.While, TokenType.If);
-        return match.Type switch
-        {
-            TokenType.If => ConditionalStatement(),
-            TokenType.While => WhileStatement(),
-            _ => ExpressionStatement(),
-        };
-    }
-
 
 
 
@@ -84,18 +85,28 @@ public record class ProgramParser(TokenStream Tokens) : ExpressionParser(Tokens)
     }
 
 
+    IStatement WhileStatement()
+    {
+        return new WhileStatementTree { Conditional = ConditionalExpression(), Body = ConditionalBlock() };
+    }
 
-    IStatement WhileStatement() => new WhileStatementTree { Conditional = ConditionalExpression(), Body = ConditionalBlock() };
+
 
     IStatement ExpressionStatement()
     {
         Tokens.SkipNewlines = false;
-        IStatement expressionStatement = new ExpressionStatement { Expression = Expression() };
+        var expressionStatement = new ExpressionStatement { Expression = Expression() };
         Tokens.Expect(TokenType.NewLine, TokenType.EndOfText);
         Tokens.SkipNewlines = true;
-
         return expressionStatement;
     }
+
+
+
+
+
+
+
 
 
 
